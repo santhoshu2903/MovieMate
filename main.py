@@ -121,9 +121,6 @@ class ShowTime:
 
 
 
-
-
-
 if __name__=="__main__":
     ShowTime()
     tk.mainloop()

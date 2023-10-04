@@ -20,12 +20,12 @@ def init_db():
     with sqlite3.connect(bookings_db_path) as conn:
         c=conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS bookings (
-            movie text,
-            date text,
-            time text,
+            movie text not null,
+            date date not null,
+            time time not null,
             seats text,
-            price text,
-            username text
+            price float not null,
+            billingName text
         );""")
 
 
@@ -33,10 +33,9 @@ def init_db():
         c=conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS movies (
             name text,
-            date text,
-            time text,
-            seats text,
-            price text
+            date date not null,
+            time time not null,
+            price float not null
         );""")
 
 
@@ -48,6 +47,7 @@ def init_db():
             gmail text
         );""")
         c.execute("INSERT INTO users VALUES ('admin', 'admin','admin')")
+        c.execute("INSERT INTO users VALUES ('salesperson', 'salesperson','salesperson')")
 
 
 class ShowTime:
@@ -173,52 +173,52 @@ class ShowTime:
 
     def insert_movie_page(self):
         self.clear_content()
-        self.insertmoviepage=tk.Frame(self.root)
+        self.insertmoviepage = tk.Frame(self.root)
         self.insertmoviepage.pack(fill="both", expand=True)
         self.insertmoviepage.grid_rowconfigure(0, weight=1)
         self.insertmoviepage.grid_columnconfigure(0, weight=1)
 
-        self.insertmoviepage_label=tk.Label(self.insertmoviepage, text="Insert Movie", font=("Arial", 20))
-        self.insertmoviepage_label.pack(pady=20)
+        self.insertmoviepage_label = tk.Label(self.insertmoviepage, text="Insert Movie", font=("Arial", 20))
+        self.insertmoviepage_label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        self.insertmoviepage_name_label=tk.Label(self.insertmoviepage, text="Movie Name", font=("Arial", 15))
-        self.insertmoviepage_name_label.pack(pady=10)
+        # Movie Name
+        self.insertmoviepage_name_label = tk.Label(self.insertmoviepage, text="Movie Name", font=("Arial", 15))
+        self.insertmoviepage_name_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_name_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
+        self.insertmoviepage_name_entry.grid(row=1, column=1, padx=10, pady=10,sticky='w')
 
-        self.insertmoviepage_name_entry=tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_name_entry.pack(pady=10)
+        # Date
+        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Date", font=("Arial", 15))
+        self.insertmoviepage_date_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_date_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
+        self.insertmoviepage_date_entry.grid(row=2, column=1, padx=10, pady=10,sticky='w')
 
-        self.insertmoviepage_date_label=tk.Label(self.insertmoviepage, text="Date", font=("Arial", 15))
-        self.insertmoviepage_date_label.pack(pady=10)
+        # Time
+        self.insertmoviepage_time_label = tk.Label(self.insertmoviepage, text="Time", font=("Arial", 15))
+        self.insertmoviepage_time_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_time_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
+        self.insertmoviepage_time_entry.grid(row=3, column=1, padx=10, pady=10, sticky='w')
 
-        self.insertmoviepage_date_entry=tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_date_entry.pack(pady=10)
+        # Total Number of Seats Available
+        self.insertmoviepage_seats_label = tk.Label(self.insertmoviepage, text="Total Number of Seats Available", font=("Arial", 15))
+        self.insertmoviepage_seats_label.grid(row=4, column=0, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_seats_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
+        self.insertmoviepage_seats_entry.grid(row=4, column=1, padx=10, pady=10,    sticky='w')
 
-        self.insertmoviepage_time_label=tk.Label(self.insertmoviepage, text="Time", font=("Arial", 15))
-        self.insertmoviepage_time_label.pack(pady=10)
+        # Price
+        self.insertmoviepage_price_label = tk.Label(self.insertmoviepage, text="Price", font=("Arial", 15))
+        self.insertmoviepage_price_label.grid(row=5, column=0, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_price_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
+        self.insertmoviepage_price_entry.grid(row=5, column=1, padx=10, pady=10, sticky='w')
 
-        self.insertmoviepage_time_entry=tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_time_entry.pack(pady=10)
+        self.insertmoviepage_button = tk.Button(self.insertmoviepage, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_db)
+        self.insertmoviepage_button.grid(row=6, column=0, columnspan=2, pady=10)
 
-        self.insertmoviepage_seats_label=tk.Label(self.insertmoviepage, text="Seats", font=("Arial", 15))
-        self.insertmoviepage_seats_label.pack(pady=10)
+        self.insertmoviepage_back_button = tk.Button(self.insertmoviepage, text="Back", font=("Arial", 15), command=self.admin_page)
+        self.insertmoviepage_back_button.grid(row=7, column=0, columnspan=2, pady=10)
 
-        self.insertmoviepage_seats_entry=tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_seats_entry.pack(pady=10)
-
-        self.insertmoviepage_price_label=tk.Label(self.insertmoviepage, text="Price", font=("Arial", 15))
-        self.insertmoviepage_price_label.pack(pady=10)
-
-        self.insertmoviepage_price_entry=tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_price_entry.pack(pady=10)
-
-        self.insertmoviepage_button=tk.Button(self.insertmoviepage, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_db)
-        self.insertmoviepage_button.pack(pady=10)
-
-        self.insertmoviepage_back_button=tk.Button(self.insertmoviepage, text="Back", font=("Arial", 15), command=self.admin_page)
-        self.insertmoviepage_back_button.pack(pady=10)
-
-        self.insertmoviepage_back_login_button=tk.Button(self.insertmoviepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
-        self.insertmoviepage_back_login_button.pack(pady=10)
+        self.insertmoviepage_back_login_button = tk.Button(self.insertmoviepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
+        self.insertmoviepage_back_login_button.grid(row=8, column=0, columnspan=2, pady=10)
 
 
 
@@ -268,8 +268,49 @@ class ShowTime:
         self.salespersonpage_searchbar_entry=tk.Entry(self.salespersonpage, font=("Arial", 15))
         self.salespersonpage_searchbar_entry.pack(pady=10)
 
-        self.salespersonpage_searchbar_label=tk.Label(self.salespersonpage, text="Search", font=("Arial", 15))
-        self.salespersonpage_searchbar_label.pack(pady=10)
+        self.salespersonpage_searchbar_button=tk.Button(self.salespersonpage, text="Search", font=("Arial", 15), command=self.search_movie)
+        self.salespersonpage_searchbar_button.pack(pady=10)
+
+        self.salespersonpage_back_button=tk.Button(self.salespersonpage, text="Back", font=("Arial", 15), command=self.login_page)
+        self.salespersonpage_back_button.pack(pady=10)
+
+    def movie_page(self, name):
+        self.clear_content()
+        self.moviepage=tk.Frame(self.root)
+        self.moviepage.pack(fill="both", expand=True)
+        self.moviepage.grid_rowconfigure(0, weight=1)
+        self.moviepage.grid_columnconfigure(0, weight=1)
+
+        self.moviepage_label=tk.Label(self.moviepage, text=name, font=("Arial", 20))
+        self.moviepage_label.pack(pady=20)
+
+        self.moviepage_date_label=tk.Label(self.moviepage, text="Date", font=("Arial", 15))
+        self.moviepage_date_label.pack(pady=10)
+
+        self.moviepage_date_entry=tk.Entry(self.moviepage, font=("Arial", 15))
+        self.moviepage_date_entry.pack(pady=10)
+
+        self.moviepage_time_label=tk.Label(self.moviepage, text="Time", font=("Arial", 15))
+        self.moviepage_time_label.pack(pady=10)
+
+        self.moviepage_time_entry=tk.Entry(self.moviepage, font=("Arial", 15))
+        self.moviepage_time_entry.pack(pady=10)
+
+        self.moviepage_seats_label=tk.Label(self.moviepage, text="Seats", font=("Arial", 15))
+        self.moviepage_seats_label.pack(pady=10)
+
+        self.moviepage_seats_entry=tk.Entry(self.moviepage, font=("Arial", 15))
+        self.moviepage_seats_entry.pack(pady=10)
+
+        self.moviepage_button=tk.Button(self.moviepage, text="Book", font=("Arial", 15), command=self.book_movie)
+        self.moviepage_button.pack(pady=10)
+
+        self.moviepage_back_button=tk.Button(self.moviepage, text="Back", font=("Arial", 15), command=self.salesperson_page)
+        self.moviepage_back_button.pack(pady=10)
+
+        self.moviepage_back_login_button=tk.Button(self.moviepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
+        self.moviepage_back_login_button.pack(pady=10)
+
 
 #Controller=======================================================================================================================================================================
 
@@ -343,16 +384,41 @@ class ShowTime:
         conn.commit()
         conn.close()
 
+
+    def search_movie(self):
+        name=self.salespersonpage_searchbar_entry.get()
+        conn=sqlite3.connect(movies_db_path)
+        c=conn.cursor()
+        c.execute("SELECT * FROM movies WHERE name=?", (name,))
+        if c.fetchone():
+            self.movie_page(name)
+        else:
+            messagebox.showerror("Error", "Movie does not exist")
+        conn.commit()
+        conn.close()
+        
+
+    def book_movie(self):
+        name=self.moviepage_label.cget("text")
+        date=self.moviepage_date_entry.get()
+        time=self.moviepage_time_entry.get()
+        seats=self.moviepage_seats_entry.get()
+        price=self.moviepage_price_entry.get()
+        conn=sqlite3.connect(bookings_db_path)
+        c=conn.cursor()
+        c.execute("SELECT * FROM bookings WHERE movie=? AND date=? AND time=?", (name, date, time))
+        if c.fetchone():
+            messagebox.showerror("Error", "Movie already booked")
+        else:
+            c.execute("INSERT INTO bookings VALUES (?, ?, ?, ?, ?, ?)", (name, date, time, seats, price, "salesperson"))
+            messagebox.showinfo("Success", "Movie booked successfully")
+            self.salesperson_page()
+        conn.commit()
+        conn.close()
+
     def clear_content(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-
-
-
-
-
-
-
 
 
 if __name__=="__main__":

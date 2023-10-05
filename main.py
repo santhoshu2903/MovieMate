@@ -43,6 +43,8 @@ def init_db():
         c=conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS users (
             username text,
+            firstname text,
+            lastname text,
             password text,
             gmail text
         );""")
@@ -54,8 +56,8 @@ class ShowTime:
     def __init__(self):
         super().__init__()
         self.root=tk.Tk()
-        self.root.title("Show Time")
-        self.root.geometry("800x600")
+        self.root.title("Welcome to CMU Movie ticket management system")
+        self.root.geometry("800x700")
         self.show_homepage()
 
     def show_homepage(self):
@@ -65,7 +67,7 @@ class ShowTime:
         self.homepage.grid_rowconfigure(0, weight=1)
         self.homepage.grid_columnconfigure(0, weight=1)
 
-        self.homepage_label=tk.Label(self.homepage, text="Show Time", font=("Arial", 20))
+        self.homepage_label=tk.Label(self.homepage, text="Start Booking, It's Show Time", font=("Arial", 20))
         self.homepage_label.pack(pady=20)
 
         self.homepage_button=tk.Button(self.homepage, text="Start", font=("Arial", 15), command=self.login_page)
@@ -100,7 +102,7 @@ class ShowTime:
         self.loginpage_back_button=tk.Button(self.loginpage, text="Back", font=("Arial", 15), command=self.show_homepage)
         self.loginpage_back_button.pack(pady=10)
 
-        self.create_account_button=tk.Button(self.loginpage, text="Create Account", font=("Arial", 15), command=self.create_account)
+        self.create_account_button=tk.Button(self.loginpage, text="Not a User??..SIGN UP", font=("Arial", 15), command=self.create_account)
         self.create_account_button.pack(pady=10)
 
     def create_account(self):
@@ -117,7 +119,19 @@ class ShowTime:
         self.createaccountpage_username_label.pack(pady=10)
 
         self.createaccountpage_username_entry=tk.Entry(self.createaccountpage, font=("Arial", 15))
-        self.createaccountpage_username_entry.pack(pady=10)
+        self.createaccountpage_username_entry.pack(pady=10) 
+
+        self.createaccountpage_firstname_label=tk.Label(self.createaccountpage, text="Firstname", font=("Arial", 15))
+        self.createaccountpage_firstname_label.pack(pady=10)
+
+        self.createaccountpage_firstname_entry=tk.Entry(self.createaccountpage, font=("Arial", 15))
+        self.createaccountpage_firstname_entry.pack(pady=10)
+
+        self.createaccountpage_lastname_label=tk.Label(self.createaccountpage, text="Lastname", font=("Arial", 15))
+        self.createaccountpage_lastname_label.pack(pady=10)
+
+        self.createaccountpage_lastname_entry=tk.Entry(self.createaccountpage, font=("Arial", 15))
+        self.createaccountpage_lastname_entry.pack(pady=10)
 
         self.createaccountpage_password_label=tk.Label(self.createaccountpage, text="Password", font=("Arial", 15))
         self.createaccountpage_password_label.pack(pady=10)

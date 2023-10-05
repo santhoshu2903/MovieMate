@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkcalendar import Calendar, DateEntry
 from tkinter import filedialog
 from tkinter import font
 import sqlite3
@@ -21,11 +22,11 @@ def init_db():
         c=conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS bookings (
             movie text not null,
-            date date not null,
-            time time not null,
-            seats text,
+            date DATE  not null,
+            time DATETIME not null,
+            seats INTEGER not null,
             price float not null,
-            billingName text
+            username text
         );""")
 
 
@@ -33,9 +34,10 @@ def init_db():
         c=conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS movies (
             name text,
-            date date not null,
-            time time not null,
-            price float not null
+            date DATE  not null,
+            time DATETIME not null,
+            seats INTEGER not null,
+            price FLOAT not null
         );""")
 
 
@@ -188,17 +190,39 @@ class ShowTime:
         self.insertmoviepage_name_entry.grid(row=1, column=1, padx=10, pady=10,sticky='w')
 
         # Date
-        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Date", font=("Arial", 15))
+        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Calendar", font=("Arial", 15))
         self.insertmoviepage_date_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_date_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_date_entry.grid(row=2, column=1, padx=10, pady=10,sticky='w')
+
+        self.insertmoviepage_date_entry = DateEntry(self.insertmoviepage, width=18,background="darkblue", foreground="white", date_pattern="MM/dd/yyyy", font=("Arial", 15))
+        self.insertmoviepage_date_entry.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+        
 
         # Time
-        self.insertmoviepage_time_label = tk.Label(self.insertmoviepage, text="Time", font=("Arial", 15))
-        self.insertmoviepage_time_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_time_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_time_entry.grid(row=3, column=1, padx=10, pady=10, sticky='w')
 
+        self.insertmoviepage_time_frame=tk.Frame(self.insertmoviepage)
+        self.insertmoviepage_time_frame.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+        self.insertmoviepage_time_frame.grid_rowconfigure(0, weight=1)
+        self.insertmoviepage_time_frame.grid_columnconfigure(0, weight=1)
+
+        self.hour_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],font=("Arial", 15))
+        self.hour_combobox.set("01")
+        self.hour_combobox.config(width=4)
+        self.hour_combobox.grid(row=0, column=1, padx=(0, 5))
+
+        self.minute_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["00", "15", "30", "45"],font=("Arial", 15))
+        self.minute_combobox.set("00")
+        self.minute_combobox.config(width=4)
+        self.minute_combobox.grid(row=0, column=2, padx=5)
+
+        self.ampm_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["AM", "PM"],font=("Arial", 15))
+        self.ampm_combobox.set("AM")
+        self.ampm_combobox.config(width=4)
+        self.ampm_combobox.grid(row=0, column=3, padx=(5, 0))
+
+
+        self.insertmoviepage_time_label = tk.Label(self.insertmoviepage, text="Time", font=("Arial", 15))  
+        self.insertmoviepage_time_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
+        
         # Total Number of Seats Available
         self.insertmoviepage_seats_label = tk.Label(self.insertmoviepage, text="Total Number of Seats Available", font=("Arial", 15))
         self.insertmoviepage_seats_label.grid(row=4, column=0, padx=10, pady=10, sticky='w')
@@ -206,7 +230,7 @@ class ShowTime:
         self.insertmoviepage_seats_entry.grid(row=4, column=1, padx=10, pady=10,    sticky='w')
 
         # Price
-        self.insertmoviepage_price_label = tk.Label(self.insertmoviepage, text="Price", font=("Arial", 15))
+        self.insertmoviepage_price_label = tk.Label(self.insertmoviepage, text="Price ( USD Per Seat)", font=("Arial", 15))
         self.insertmoviepage_price_label.grid(row=5, column=0, padx=10, pady=10, sticky='w')
         self.insertmoviepage_price_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
         self.insertmoviepage_price_entry.grid(row=5, column=1, padx=10, pady=10, sticky='w')
@@ -245,7 +269,7 @@ class ShowTime:
         self.changemoviepricepage_price_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
         self.changemoviepricepage_price_entry.pack(pady=10)
 
-        self.changemoviepricepage_button=tk.Button(self.changemoviepricepage, text="Change Price", font=("Arial", 15), command=self.change_movie_price_db)
+        self.changemoviepricepage_button=tk.Button(self.changemoviepricepage, text="Change Price ( USD Per Seat)", font=("Arial", 15), command=self.change_movie_price_db)
         self.changemoviepricepage_button.pack(pady=10)
 
         self.changemoviepricepage_back_button=tk.Button(self.changemoviepricepage, text="Back", font=("Arial", 15), command=self.admin_page)
@@ -314,6 +338,12 @@ class ShowTime:
 
 #Controller=======================================================================================================================================================================
 
+    def get_selected_date(self):
+        selected_date = self.insertmoviepage_date_entry.get()
+        self.insertmoviepage_date_entry.delete(0, tk.END)  # Clear the current entry text
+        self.insertmoviepage_date_entry.insert(0, selected_date)
+    
+    
     def loginUser(self):
         username=self.loginpage_username_entry.get()
         password=self.loginpage_password_entry.get()
@@ -322,7 +352,7 @@ class ShowTime:
         c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
         if c.fetchone():
             messagebox.showinfo("Success", "Login successful")
-            if username=="admin":
+            if username=="admin" or username=="":
                 self.admin_page()
             if username=="salesperson":
                 self.salesperson_page()
@@ -354,9 +384,12 @@ class ShowTime:
     def insert_movie_db(self):
         name=self.insertmoviepage_name_entry.get()
         date=self.insertmoviepage_date_entry.get()
-        time=self.insertmoviepage_time_entry.get()
         seats=self.insertmoviepage_seats_entry.get()
         price=self.insertmoviepage_price_entry.get()
+        time=self.hour_combobox.get()+":"+self.minute_combobox.get()+" "+self.ampm_combobox.get()
+
+
+
         conn=sqlite3.connect(movies_db_path)
         c=conn.cursor()
         c.execute("SELECT * FROM movies WHERE name=?", (name,))

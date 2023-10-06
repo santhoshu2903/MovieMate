@@ -59,7 +59,7 @@ class ShowTime:
         super().__init__()
         self.root=tk.Tk()
         self.root.title("Welcome to CMU Movie ticket management system")
-        self.root.geometry("800x700")
+        self.root.geometry("800x600")
         self.show_homepage()
 
     def show_homepage(self):
@@ -195,7 +195,7 @@ class ShowTime:
         self.insertmoviepage.grid_columnconfigure(0, weight=1)
 
         self.insertmoviepage_label = tk.Label(self.insertmoviepage, text="Insert Movie", font=("Arial", 20))
-        self.insertmoviepage_label.grid(row=0, column=0, columnspan=2, pady=20)
+        self.insertmoviepage_label.grid(row=0, column=0, columnspan=2, pady=0)
 
         # Movie Name
         self.insertmoviepage_name_label = tk.Label(self.insertmoviepage, text="Movie Name", font=("Arial", 15))
@@ -204,7 +204,7 @@ class ShowTime:
         self.insertmoviepage_name_entry.grid(row=1, column=1, padx=10, pady=10,sticky='w')
 
         # Date
-        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Calendar", font=("Arial", 15))
+        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Date", font=("Arial", 15))
         self.insertmoviepage_date_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
 
         self.insertmoviepage_date_entry = DateEntry(self.insertmoviepage, width=18,background="darkblue", foreground="white", date_pattern="MM/dd/yyyy", font=("Arial", 15))

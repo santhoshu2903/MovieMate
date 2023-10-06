@@ -237,7 +237,7 @@ class ShowTime:
         self.tree.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
         
         # Populate the Treeview with movie data
-        self.insert_movies_tree()
+        self.search_movies()
 
         self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
         self.admin_page_back_button.grid(row=6, column=0, pady=20)
@@ -307,6 +307,7 @@ class ShowTime:
         self.insertmoviepage_button = tk.Button(self.insertmoviepage, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_db)
         self.insertmoviepage_button.grid(row=6, column=0, columnspan=2, pady=10)
 
+
         self.insertmoviepage_back_button = tk.Button(self.insertmoviepage, text="Back", font=("Arial", 15), command=self.admin_page)
         self.insertmoviepage_back_button.grid(row=7, column=0, columnspan=2, pady=10)
 
@@ -340,6 +341,7 @@ class ShowTime:
 
         self.changemoviepricepage_button=tk.Button(self.changemoviepricepage, text="Change Price ( USD Per Seat)", font=("Arial", 15), command=self.change_movie_price_db)
         self.changemoviepricepage_button.pack(pady=10)
+
 
         self.changemoviepricepage_back_button=tk.Button(self.changemoviepricepage, text="Back", font=("Arial", 15), command=self.admin_page)
         self.changemoviepricepage_back_button.pack(pady=10)
@@ -395,7 +397,7 @@ class ShowTime:
         self.moviepage_seats_entry=tk.Entry(self.moviepage, font=("Arial", 15))
         self.moviepage_seats_entry.pack(pady=10)
 
-        self.moviepage_button=tk.Button(self.moviepage, text="Book", font=("Arial", 15), command=self.book_movie)
+        self.moviepage_button=tk.Button(self.moviepage, text="Book", font=("Arial", 15), command=self.book_movie_ticket)
         self.moviepage_button.pack(pady=10)
 
         self.moviepage_back_button=tk.Button(self.moviepage, text="Back", font=("Arial", 15), command=self.salesperson_page)
@@ -406,21 +408,15 @@ class ShowTime:
 
 
 #Controller=======================================================================================================================================================================
-
-    @staticmethod
-    def insert_movies_tree(self, search_term=""):
-        self.tree.delete(*self.tree.get_children())  # Clear existing entries
-        
-        movies = self.fetch_movies(search_term)
-        for movie in movies:
-            self.tree.insert('', 'end', values=movie)
+ 
 
     def search_movies(self):
         search_term = self.search_entry.get()
-        if search_term == "":
-            self.insert_movies_tree("")
-        else:
-            self.insert_movies_tree(search_term)
+        self.tree.delete(*self.tree.get_children())  # Clear existing entries from treeview
+
+        movies = self.fetch_movies(search_term)
+        for movie in movies:
+            self.tree.insert('', 'end', values=movie)
 
     def fetch_movies(self, search_term=""):
         conn = sqlite3.connect(movies_db_path)
@@ -430,9 +426,6 @@ class ShowTime:
         conn.commit()
         conn.close()
         return rows
-
-        
-
 
 
 
@@ -448,6 +441,7 @@ class ShowTime:
             self.tree.insert("", tk.END, values=row)
         conn.commit()
         conn.close()
+
 
     
     def get_selected_date(self):
@@ -513,6 +507,7 @@ class ShowTime:
             self.admin_page()
         conn.commit()
         conn.close()
+        self.search_movies()
 
     def change_movie_price_db(self):
         name=self.changemoviepricepage_name_entry.get()
@@ -528,7 +523,7 @@ class ShowTime:
             messagebox.showerror("Error", "Movie does not exist")
         conn.commit()
         conn.close()
-
+        self.search_movies()
 
 
 

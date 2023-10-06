@@ -62,6 +62,24 @@ class ShowTime:
         self.root.geometry("800x600")
         self.show_homepage()
 
+        # Create a custom style for the Treeview
+        self.style = ttk.Style()
+        self.style.configure("Treeview",
+                        font=("Helvetica", 12),
+                        rowheight=25,  # Adjust row height as needed
+                        fieldbackground="lightgray")  # Background color
+
+        # Add column lines
+        self.style.layout("Treeview.Heading", [
+            ("Treeheading.cell", {'sticky': 'nswe'}),
+            ("Treeheading.border", {'sticky': 'nswe', 'children': [
+                ("Treeheading.padding", {'sticky': 'nswe', 'children': [
+                    ("Treeheading.image", {'side': 'right', 'sticky': ''}),
+                    ("Treeheading.text", {'sticky': 'nswe'}),
+                ]}),
+            ]}),
+        ])
+
     def show_homepage(self):
         self.clear_content()
         self.homepage=tk.Frame(self.root)
@@ -171,21 +189,58 @@ class ShowTime:
     def admin_page(self):
         self.clear_content()
         self.adminpage=tk.Frame(self.root)
+        # self.root.geometry("1000x1200")
         self.adminpage.pack(fill="both", expand=True)
         self.adminpage.grid_rowconfigure(0, weight=1)
         self.adminpage.grid_columnconfigure(0, weight=1)
 
         self.adminpage_label=tk.Label(self.adminpage, text="Admin Page", font=("Arial", 20))
-        self.adminpage_label.pack(pady=20)
+        self.adminpage_label.grid(row=0, column=0, columnspan=4, pady=0)
+        # self.adminpage_label.pack(pady=20)
 
-        self.admin_page_insert_movie_button=tk.Button(self.adminpage, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_page)   
-        self.admin_page_insert_movie_button.pack(pady=20)
+        self.search_label = tk.Label(self.adminpage, text="Search Movie:")
+        self.search_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+        self.search_entry = tk.Entry(self.adminpage)
+        self.search_entry.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+        self.search_button = tk.Button(self.adminpage, text="Search", command=self.search_movies)
+        self.search_button.grid(row=1, column=2, padx=10, pady=10, sticky='w')
 
-        self.admin_page_change_movie_price_button=tk.Button(self.adminpage, text="Change Movie Price", font=("Arial", 15), command=self.change_movie_price)
-        self.admin_page_change_movie_price_button.pack(pady=20)
+        self.adminpage_functions_frame = tk.Frame(self.adminpage)
+        self.adminpage_functions_frame.grid(row=2, column=0, pady=0)
+        self.adminpage_functions_frame.grid_rowconfigure(0, weight=1)
+        self.adminpage_functions_frame.grid_columnconfigure(0, weight=1)
 
-        self.admin_page_back_button=tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
-        self.admin_page_back_button.pack(pady=20)
+        self.admin_page_insert_movie_button = tk.Button(self.adminpage_functions_frame, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_page)
+        self.admin_page_insert_movie_button.grid(row=0, column=0, pady=20)
+
+        self.admin_page_change_movie_price_button = tk.Button(self.adminpage_functions_frame, text="Change Movie Price", font=("Arial", 15), command=self.change_movie_price)
+        self.admin_page_change_movie_price_button.grid(row=0, column=1, pady=20)
+
+        self.admin_page_book_ticket_button = tk.Button(self.adminpage_functions_frame, text="Book Ticket", font=("Arial", 15), command=self.salesperson_page)
+        self.admin_page_book_ticket_button.grid(row=0, column=2, pady=20)
+
+        self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
+        self.admin_page_back_button.grid(row=6, column=0, pady=20)
+
+        # Create a Treeview widget for movie list
+        self.tree = ttk.Treeview(self.adminpage, columns=("Name", "Date", "Time", "Seats", "Price"), show="headings",style="Treeview")
+        self.tree.heading("Name", text="Movie Name")
+        self.tree.column("Name", width=150,anchor='center')
+        self.tree.heading("Date", text="Date")
+        self.tree.column("Date", width=150,anchor='center')
+        self.tree.heading("Time", text="Time")
+        self.tree.column("Time", width=150,anchor='center')
+        self.tree.heading("Seats", text="Seats")
+        self.tree.column("Seats", width=150,anchor='center')
+        self.tree.heading("Price", text="Price")
+        self.tree.column("Price", width=150,anchor='center')
+        self.tree.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
+        
+        # Populate the Treeview with movie data
+        self.insert_movies_tree()
+
+        self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
+        self.admin_page_back_button.grid(row=6, column=0, pady=20)
 
     def insert_movie_page(self):
         self.clear_content()
@@ -306,7 +361,7 @@ class ShowTime:
         self.salespersonpage_searchbar_entry=tk.Entry(self.salespersonpage, font=("Arial", 15))
         self.salespersonpage_searchbar_entry.pack(pady=10)
 
-        self.salespersonpage_searchbar_button=tk.Button(self.salespersonpage, text="Search", font=("Arial", 15), command=self.search_movie)
+        self.salespersonpage_searchbar_button=tk.Button(self.salespersonpage, text="Search", font=("Arial", 15), command=self.book_movie_ticket)
         self.salespersonpage_searchbar_button.pack(pady=10)
 
         self.salespersonpage_back_button=tk.Button(self.salespersonpage, text="Back", font=("Arial", 15), command=self.login_page)
@@ -352,6 +407,49 @@ class ShowTime:
 
 #Controller=======================================================================================================================================================================
 
+    @staticmethod
+    def insert_movies_tree(self, search_term=""):
+        self.tree.delete(*self.tree.get_children())  # Clear existing entries
+        
+        movies = self.fetch_movies(search_term)
+        for movie in movies:
+            self.tree.insert('', 'end', values=movie)
+
+    def search_movies(self):
+        search_term = self.search_entry.get()
+        if search_term == "":
+            self.insert_movies_tree("")
+        else:
+            self.insert_movies_tree(search_term)
+
+    def fetch_movies(self, search_term=""):
+        conn = sqlite3.connect(movies_db_path)
+        c = conn.cursor()
+        c.execute("SELECT * FROM movies WHERE name LIKE ?", (f"%{search_term}%",))
+        rows = c.fetchall()
+        conn.commit()
+        conn.close()
+        return rows
+
+        
+
+
+
+
+
+    def insert_movies_tree(self):
+        self.tree.delete(*self.tree.get_children())
+
+        conn=sqlite3.connect(movies_db_path)
+        c=conn.cursor()
+        c.execute("SELECT * FROM movies")
+        rows=c.fetchall()
+        for row in rows:
+            self.tree.insert("", tk.END, values=row)
+        conn.commit()
+        conn.close()
+
+    
     def get_selected_date(self):
         selected_date = self.insertmoviepage_date_entry.get()
         self.insertmoviepage_date_entry.delete(0, tk.END)  # Clear the current entry text
@@ -432,20 +530,11 @@ class ShowTime:
         conn.close()
 
 
-    def search_movie(self):
-        name=self.salespersonpage_searchbar_entry.get()
-        conn=sqlite3.connect(movies_db_path)
-        c=conn.cursor()
-        c.execute("SELECT * FROM movies WHERE name=?", (name,))
-        if c.fetchone():
-            self.movie_page(name)
-        else:
-            messagebox.showerror("Error", "Movie does not exist")
-        conn.commit()
-        conn.close()
-        
 
-    def book_movie(self):
+
+
+
+    def book_movie_ticket(self):
         name=self.moviepage_label.cget("text")
         date=self.moviepage_date_entry.get()
         time=self.moviepage_time_entry.get()

@@ -59,7 +59,7 @@ class ShowTime:
         super().__init__()
         self.root=tk.Tk()
         self.root.title("Welcome to CMU Movie ticket management system")
-        self.root.geometry("800x600")
+        self.root.geometry("800x700")
         self.show_homepage()
 
         # Create a custom style for the Treeview

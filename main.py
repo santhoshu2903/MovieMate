@@ -7,50 +7,60 @@ from tkinter import font
 import sqlite3
 import os
 import sys
+import mysql.connector
+from datetime import datetime
+from time import strftime
 
+# users_db_path=os.path.join(os.getcwd(), "users.db")
+# bookings_db_path=os.path.join(os.getcwd(), "bookings.db")
+# movies_db_path=os.path.join(os.getcwd(), "movies.db")
 
-users_db_path=os.path.join(os.getcwd(), "users.db")
-bookings_db_path=os.path.join(os.getcwd(), "bookings.db")
-movies_db_path=os.path.join(os.getcwd(), "movies.db")
-
-
-
+mysql_database = {
+    'user': 'root',
+    'password': 'root',
+    'host': 'localhost',
+    'port': 3306,
+    'database': 'showtime'
+}
 
 
 def init_db():
-    with sqlite3.connect(bookings_db_path) as conn:
-        c=conn.cursor()
-        c.execute("""CREATE TABLE IF NOT EXISTS bookings (
-            booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            movie_id INTEGER not null,
-            no_of_seats INTEGER not null,
-            total_price float not null,
-            username text
-        );""")
+    # Connect to the MySQL server
+    conn = mysql.connector.connect(**mysql_database)
+    cursor = conn.cursor()
 
+    # Create the 'bookings' table
+    cursor.execute("""CREATE TABLE IF NOT EXISTS bookings (
+        booking_id INT AUTO_INCREMENT PRIMARY KEY,
+        movie_id INT NOT NULL,
+        no_of_seats INT NOT NULL,
+        total_price FLOAT NOT NULL,
+        username VARCHAR(255)
+    );""")
 
-    with sqlite3.connect(movies_db_path) as conn:
-        c=conn.cursor()
-        c.execute("""CREATE TABLE IF NOT EXISTS movies (
-            movie_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name text,
-            date DATE  not null,
-            time DATETIME not null,
-            seats INTEGER not null,
-            price FLOAT not null
-        );""")
+    # Create the 'movies' table
+    cursor.execute("""CREATE TABLE IF NOT EXISTS movies (
+        movie_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        date DATE NOT NULL,
+        time DATETIME NOT NULL,
+        seats INT NOT NULL,
+        price FLOAT NOT NULL
+    );""")
 
+    # Create the 'users' table
+    cursor.execute("""CREATE TABLE IF NOT EXISTS users (
+        user_id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255),
+        firstname VARCHAR(255),
+        lastname VARCHAR(255),
+        password VARCHAR(255),
+        gmail VARCHAR(255)
+    );""")
 
-    with sqlite3.connect(users_db_path) as conn:
-        c=conn.cursor()
-        c.execute("""CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username text,
-            firstname text,
-            lastname text,
-            password text,
-            gmail text
-        );""")
+    # Commit and close the connection
+    conn.commit()
+    conn.close()
 
 
 
@@ -499,9 +509,9 @@ class ShowTime:
             self.tree.insert('', 'end', values=movie[1:])
 
     def fetch_movies(self, search_term=""):
-        conn = sqlite3.connect(movies_db_path)
+        conn = mysql.connector.connect(**mysql_database)
         c = conn.cursor()
-        c.execute("SELECT * FROM movies WHERE name LIKE ?", (f"%{search_term}%",))
+        c.execute("SELECT * FROM showtime.movies WHERE name LIKE %s", (f"%{search_term}%",))
         rows = c.fetchall()
         conn.commit()
         conn.close()
@@ -513,9 +523,9 @@ class ShowTime:
     def insert_movies_tree(self):
         self.tree.delete(*self.tree.get_children())
 
-        conn=sqlite3.connect(movies_db_path)
+        conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM movies")
+        c.execute("SELECT * FROM showtime.movies")
         rows=c.fetchall()
         for row in rows:
             self.tree.insert("", tk.END, values=row)
@@ -533,9 +543,9 @@ class ShowTime:
     def loginUser(self):
         username=self.loginpage_username_entry.get()
         password=self.loginpage_password_entry.get()
-        conn=sqlite3.connect(users_db_path)
+        conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        c.execute("SELECT * FROM showtime.users WHERE username=%s AND password=%s", (username, password))
         if c.fetchone():
             messagebox.showinfo("Success", "Login successful")
             if username=="admin" or username=="":
@@ -559,13 +569,13 @@ class ShowTime:
         password=self.createaccountpage_password_entry.get()
         gmail=self.createaccountpage_gmail_entry.get()
 
-        conn=sqlite3.connect(users_db_path)
+        conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM users WHERE username=?", (username,))
+        c.execute("SELECT * FROM showtime.users WHERE username=%s", (username,))
         if c.fetchone():
             messagebox.showerror("Error", "Username already exists")
         else:
-            c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?)", (None, username, firstname, lastname, password, gmail))
+            c.execute("INSERT INTO users (username, firstname, lastname, password, gmail) VALUES (%s, %s, %s, %s, %s)", (username, firstname, lastname, password, gmail))
             messagebox.showinfo("Success", "Account created successfully")
             self.login_page()
         conn.commit()
@@ -575,18 +585,21 @@ class ShowTime:
     #insert movie into database
     def insert_movie_db(self):
         name=self.insertmoviepage_name_entry.get()
-        date=self.insertmoviepage_date_entry.get()
+        date=datetime.strptime(self.insertmoviepage_date_entry.get(),"%m/%d/%Y").date()
         time=self.hour_combobox.get()+":"+self.minute_combobox.get()+" "+self.ampm_combobox.get()
-        seats=self.insertmoviepage_seats_entry.get()
-        price=self.insertmoviepage_price_entry.get()
+        time=datetime.strptime(time, "%I:%M %p").time()
+        seats=int(self.insertmoviepage_seats_entry.get())
+        price=float(self.insertmoviepage_price_entry.get())
 
-        conn=sqlite3.connect(movies_db_path)
+        print(name, date, time, seats, price)
+        print(type(name), type(date), type(time), type(seats), type(price))
+        conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM movies WHERE name=?", (name,))
+        c.execute("SELECT * FROM showtime.movies WHERE name=%s", (name,))
         if c.fetchone():
             messagebox.showerror("Error", "Movie already exists")
         else:
-            c.execute("INSERT INTO movies VALUES (?, ?, ?, ?, ?, ?)", (None, name, date, time, seats, price))
+            c.execute("INSERT INTO showtime.movies (name, date, time, seats, price) VALUES (%s, %s, %s, %s, %s)", (name, date, time, seats, price))
             messagebox.showinfo("Success", "Movie inserted successfully")
             self.admin_page()
         conn.commit()
@@ -597,11 +610,11 @@ class ShowTime:
     def change_movie_price_db(self):
         name=self.changemoviepricepage_name_entry.get()
         price=self.changemoviepricepage_price_entry.get()
-        conn=sqlite3.connect(movies_db_path)
+        conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM movies WHERE name=?", (name,))
+        c.execute("SELECT * FROM showtime.ovies WHERE name=?", (name,))
         if c.fetchone():
-            c.execute("UPDATE movies SET price=? WHERE name=?", (price, name))
+            c.execute("UPDATE showtime.movies SET price=%s WHERE name=%s", (price, name))
             messagebox.showinfo("Success", "Price changed successfully")
             self.admin_page()
         else:

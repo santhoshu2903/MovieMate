@@ -17,7 +17,7 @@ from time import strftime
 
 mysql_database = {
     'user': 'root',
-    'password': 'root',
+    'password': 'root1234',
     'host': 'localhost',
     'port': 3306,
     'database': 'showtime'
@@ -26,7 +26,10 @@ mysql_database = {
 
 def init_db():
     # Connect to the MySQL server
-    conn = mysql.connector.connect(**mysql_database)
+    try:
+        conn = mysql.connector.connect(**mysql_database)
+    except mysql.connector.Error as err:
+        print(f"{err}")
     cursor = conn.cursor()
 
     # Create the 'bookings' table

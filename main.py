@@ -4,9 +4,6 @@ from tkinter import messagebox
 from tkcalendar import Calendar, DateEntry
 from tkinter import filedialog
 from tkinter import font
-import sqlite3
-import os
-import sys
 import mysql.connector
 from datetime import datetime
 from time import strftime
@@ -17,7 +14,7 @@ from time import strftime
 
 mysql_database = {
     'user': 'root',
-    'password': 'root1234',
+    'password': 'root',
     'host': 'localhost',
     'port': 3306,
     'database': 'showtime'
@@ -26,12 +23,9 @@ mysql_database = {
 
 def init_db():
     # Connect to the MySQL server
-    try:
-        conn = mysql.connector.connect(**mysql_database)
-    except mysql.connector.Error as err:
-        print(f"{err}")
+    conn = mysql.connector.connect(**mysql_database)
     cursor = conn.cursor()
-
+    
     # Create the 'bookings' table
     cursor.execute("""CREATE TABLE IF NOT EXISTS bookings (
         booking_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,7 +40,7 @@ def init_db():
         movie_id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255),
         date DATE NOT NULL,
-        time DATETIME NOT NULL,
+        time TIME NOT NULL,
         seats INT NOT NULL,
         price FLOAT NOT NULL
     );""")
@@ -213,14 +207,14 @@ class ShowTime:
         # self.adminpage_label.pack(pady=20)
 
         self.search_label = tk.Label(self.adminpage, text="Search Movie:")
-        self.search_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+        self.search_label.grid(row=1, column=0, padx=10, pady=10, sticky='e')
         self.search_entry = tk.Entry(self.adminpage)
         self.search_entry.grid(row=1, column=1, padx=10, pady=10, sticky='e')
         self.search_button = tk.Button(self.adminpage, text="Search", command=self.search_movies)
         self.search_button.grid(row=1, column=2, padx=10, pady=10, sticky='w')
 
         self.adminpage_functions_frame = tk.Frame(self.adminpage)
-        self.adminpage_functions_frame.grid(row=2, column=0, pady=0)
+        self.adminpage_functions_frame.grid(row=2, column=0,columnspan=4, pady=0)
         self.adminpage_functions_frame.grid_rowconfigure(0, weight=1)
         self.adminpage_functions_frame.grid_columnconfigure(0, weight=1)
 
@@ -232,6 +226,11 @@ class ShowTime:
 
         self.admin_page_book_ticket_button = tk.Button(self.adminpage_functions_frame, text="Book Ticket", font=("Arial", 15), command=self.book_movie_page)
         self.admin_page_book_ticket_button.grid(row=0, column=2, pady=20,  padx=20)
+
+        #remove movie button
+        self.admin_page_remove_movie_button = tk.Button(self.adminpage_functions_frame, text="Remove Movie", font=("Arial", 15), command=self.remove_movie)
+        self.admin_page_remove_movie_button.grid(row=0, column=3, pady=20, padx=20)
+
 
         self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
         self.admin_page_back_button.grid(row=6, column=0, pady=20)
@@ -338,16 +337,16 @@ class ShowTime:
         # get movie details from tree focus
         selected_item = self.tree.focus()
         movie_details = list(self.tree.item(selected_item, 'values'))
-        print(movie_details)
+
         self.clear_content()
+
         #display movie details and ask for number of seats to book side by side
         self.bookmoviepage=tk.Frame(self.root)
         self.bookmoviepage.pack(fill="both", expand=True)
-
         self.bookmoviepage.grid_rowconfigure(0, weight=1)
         self.bookmoviepage.grid_columnconfigure(0, weight=1)
 
-        #Book Movie Page Label
+        # #Book Movie Page Label
 
         # self.bookmoviepage_label=tk.Label(self.bookmoviepage, text="Book Movie", font=("Arial", 20))
         # self.bookmoviepage_label.pack(pady=20)
@@ -383,7 +382,7 @@ class ShowTime:
 
         self.bookmoviepage_no_of_seats_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
         self.bookmoviepage_no_of_seats_entry.grid(row=4, column=1, padx=10, pady=10, sticky='w')
-
+    
         self.bookmoviepage_total_price_label=tk.Label(self.bookmoviepage, text="Total Price", font=("Arial", 15))
         self.bookmoviepage_total_price_label.grid(row=5, column=0, padx=10, pady=10, sticky='w')
 
@@ -398,10 +397,7 @@ class ShowTime:
 
         #calculate total price
         self.bookmoviepage_no_of_seats_entry.bind("<KeyRelease>", self.calculate_total_price)
-
-
-
-
+        
         self.bookmoviepage_button=tk.Button(self.bookmoviepage, text="Book Movie", font=("Arial", 15), command=self.finialize_booking)
         self.bookmoviepage_button.grid(row=6, column=0, columnspan=2, pady=10)
 
@@ -420,11 +416,22 @@ class ShowTime:
 
     
     def change_movie_price(self):
+
+        #get tree focus and display movie name in the label
+        selected_item = self.tree.focus()
+        movie_details = list(self.tree.item(selected_item, 'values'))
+        print(movie_details)
+        #get movie name
+        movie_name=movie_details[0] 
+
         self.clear_content()
         self.changemoviepricepage=tk.Frame(self.root)
         self.changemoviepricepage.pack(fill="both", expand=True)
         self.changemoviepricepage.grid_rowconfigure(0, weight=1)
         self.changemoviepricepage.grid_columnconfigure(0, weight=1)
+
+
+
 
         self.changemoviepricepage_label=tk.Label(self.changemoviepricepage, text="Change Movie Price", font=("Arial", 20))
         self.changemoviepricepage_label.pack(pady=20)
@@ -434,6 +441,10 @@ class ShowTime:
 
         self.changemoviepricepage_name_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
         self.changemoviepricepage_name_entry.pack(pady=10)
+
+
+        #insert movie name into entry
+        self.changemoviepricepage_name_entry.insert(0, movie_name)
 
         self.changemoviepricepage_price_label=tk.Label(self.changemoviepricepage, text="Price", font=("Arial", 15))
         self.changemoviepricepage_price_label.pack(pady=10)
@@ -489,6 +500,25 @@ class ShowTime:
         self.userpage_button.pack(pady=20)
 
 #Controller=======================================================================================================================================================================
+
+
+    #remove movie from database from focus of treeview
+    def remove_movie(self):
+        selected_item = self.tree.focus()
+        movie_details = list(self.tree.item(selected_item, 'values'))
+        print(movie_details, "movie deleted")
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("SELECT * FROM showtime.movies WHERE name=%s", (movie_details[0],))
+        if c.fetchone():
+            c.execute("DELETE FROM showtime.movies WHERE name=%s", (movie_details[0],))
+            messagebox.showinfo("Success", "Movie Deleted successfully")
+            self.admin_page()
+        else:
+            messagebox.showerror("Error", "Movie does not exist")
+        conn.commit()
+        conn.close()
+        self.admin_page()
  
     def calculate_total_price(self, event):
         price=float(self.bookmoviepage_movie_price_entry.get())
@@ -615,7 +645,7 @@ class ShowTime:
         price=self.changemoviepricepage_price_entry.get()
         conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
-        c.execute("SELECT * FROM showtime.ovies WHERE name=?", (name,))
+        c.execute("SELECT * FROM showtime.movies WHERE name=%s", (name,))
         if c.fetchone():
             c.execute("UPDATE showtime.movies SET price=%s WHERE name=%s", (price, name))
             messagebox.showinfo("Success", "Price changed successfully")

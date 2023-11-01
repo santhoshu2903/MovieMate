@@ -134,7 +134,6 @@ class ShowTime:
 
     def create_account(self):
         self.clear_content()
-        self.root.geometry("700x800")
         self.createaccountpage=tk.Frame(self.root)
         self.createaccountpage.pack(fill="both", expand=True)
         self.createaccountpage.grid_rowconfigure(0, weight=1)
@@ -196,7 +195,6 @@ class ShowTime:
 
     def admin_page(self):
         self.clear_content()
-        self.root.geometry("800x600")
         self.adminpage=tk.Frame(self.root)
         self.adminpage.pack(fill="both", expand=True)
         self.adminpage.grid_rowconfigure(0, weight=1)

@@ -7,7 +7,7 @@ from tkinter import font
 import mysql.connector
 from datetime import datetime
 from time import strftime
-
+from PIL import Image, ImageTk
 # users_db_path=os.path.join(os.getcwd(), "users.db")
 # bookings_db_path=os.path.join(os.getcwd(), "bookings.db")
 # movies_db_path=os.path.join(os.getcwd(), "movies.db")
@@ -90,12 +90,22 @@ class ShowTime:
     def show_homepage(self):
         self.clear_content()
         self.homepage=tk.Frame(self.root)
+        self.homepage.config(bg="white")
         self.homepage.pack(fill="both", expand=True)
         self.homepage.grid_rowconfigure(0, weight=1)
         self.homepage.grid_columnconfigure(0, weight=1)
 
         self.homepage_label=tk.Label(self.homepage, text="Start Booking, It's Show Time", font=("Arial", 20))
+        self.homepage_label.config(bg="white")
         self.homepage_label.pack(pady=20)
+
+        #display showtime image
+        self.showtime_image=Image.open("images/showtime.jpg")
+        self.showtime_image=self.showtime_image.resize((500, 400), Image.LANCZOS)
+        self.showtime_image=ImageTk.PhotoImage(self.showtime_image)
+        self.showtime_image_label=tk.Label(self.homepage, image=self.showtime_image)
+        self.showtime_image_label.pack(pady=20)
+
 
         self.homepage_button=tk.Button(self.homepage, text="Start", font=("Arial", 15), command=self.login_page)
         self.homepage_button.pack(pady=20)
@@ -255,6 +265,7 @@ class ShowTime:
 
         self.mainpage_label=tk.Label(self.mainpage, text="Main Page", font=("Arial", 20))
         self.mainpage_label.pack(pady=20)
+
 
         self.mainpage_button=tk.Button(self.mainpage, text="Start", font=("Arial", 15), command=self.login_page)
         self.mainpage_button.pack(pady=20)

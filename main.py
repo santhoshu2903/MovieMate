@@ -129,8 +129,74 @@ class ShowTime:
         self.loginpage_back_button=tk.Button(self.loginpage, text="Back", font=("Arial", 15), command=self.show_homepage)
         self.loginpage_back_button.pack(pady=10)
 
+        #trouble siging in button
+        self.loginpage_trouble_signing_in_button=tk.Button(self.loginpage, text="Reset Password !", font=("Arial", 15), command=self.trouble_signing_in)
+        self.loginpage_trouble_signing_in_button.pack(pady=10)
+
+
+
         self.create_account_button=tk.Button(self.loginpage, text="Not a User??..SIGN UP", font=("Arial", 15), command=self.create_account)
         self.create_account_button.pack(pady=10)
+
+
+    def trouble_signing_in(self):
+        self.clear_content()
+        #password reset page
+        self.troublesigninginpage=tk.Frame(self.root)
+        self.troublesigninginpage.pack(fill="both", expand=True)
+
+        self.troublesigninginpage.grid_rowconfigure(0, weight=1)
+        self.troublesigninginpage.grid_columnconfigure(0, weight=1)
+
+        self.troublesigninginpage_label=tk.Label(self.troublesigninginpage, text="Reset Password", font=("Arial", 20))
+        self.troublesigninginpage_label.pack(pady=20)
+
+        self.troublesigninginpage_username_label=tk.Label(self.troublesigninginpage, text="Username", font=("Arial", 15))
+        self.troublesigninginpage_username_label.pack(pady=10)
+
+        self.troublesigninginpage_username_entry=tk.Entry(self.troublesigninginpage, font=("Arial", 15))
+        self.troublesigninginpage_username_entry.pack(pady=10)
+
+        #gmail entry
+        self.troublesigninginpage_gmail_label=tk.Label(self.troublesigninginpage, text="Email", font=("Arial", 15))
+        self.troublesigninginpage_gmail_label.pack(pady=10)
+
+        self.troublesigninginpage_gmail_entry=tk.Entry(self.troublesigninginpage, font=("Arial", 15))
+        self.troublesigninginpage_gmail_entry.pack(pady=10)
+
+        #verify username and email button
+        self.troublesigninginpage_verify_button=tk.Button(self.troublesigninginpage, text="Verify", font=("Arial", 15), command=self.verify_user)
+        self.troublesigninginpage_verify_button.pack(pady=10)
+
+        #enter new password label
+        self.troublesigninginpage_new_password_label=tk.Label(self.troublesigninginpage, text="Enter New Password", font=("Arial", 15))
+        self.troublesigninginpage_new_password_label.pack(pady=10)
+
+        #enter new password entry
+        self.troublesigninginpage_new_password_entry=tk.Entry(self.troublesigninginpage, font=("Arial", 15), show="*")
+        self.troublesigninginpage_new_password_entry.pack(pady=10)
+
+        #confirm new password label
+        self.troublesigninginpage_confirm_new_password_label=tk.Label(self.troublesigninginpage, text="Confirm New Password", font=("Arial", 15))
+        self.troublesigninginpage_confirm_new_password_label.pack(pady=10)
+
+        #confirm new password entry
+        self.troublesigninginpage_confirm_new_password_entry=tk.Entry(self.troublesigninginpage, font=("Arial", 15), show="*")
+        self.troublesigninginpage_confirm_new_password_entry.pack(pady=10)
+
+        #change password button
+        self.troublesigninginpage_change_password_button=tk.Button(self.troublesigninginpage, text="Change Password", font=("Arial", 15), command=self.change_password)
+        self.troublesigninginpage_change_password_button.pack(pady=10)
+
+        #disable password entry
+        self.troublesigninginpage_new_password_entry.config(state="disabled")
+        self.troublesigninginpage_confirm_new_password_entry.config(state="disabled")
+
+
+        #back button
+        self.troublesigninginpage_back_button=tk.Button(self.troublesigninginpage, text="Back", font=("Arial", 15), command=self.login_page)
+        self.troublesigninginpage_back_button.pack(pady=10)
+
 
     def create_account(self):
         self.clear_content()
@@ -167,7 +233,7 @@ class ShowTime:
         self.createaccountpage_password_entry.pack(pady=10)
 
 
-        self.createaccountpage_gmail_label=tk.Label(self.createaccountpage, text="Gmail", font=("Arial", 15))
+        self.createaccountpage_gmail_label=tk.Label(self.createaccountpage, text="Email", font=("Arial", 15))
         self.createaccountpage_gmail_label.pack(pady=10)
 
         self.createaccountpage_gmail_entry=tk.Entry(self.createaccountpage, font=("Arial", 15))
@@ -334,6 +400,12 @@ class ShowTime:
     def book_movie_page(self):
         # get movie details from tree focus
         selected_item = self.tree.focus()
+
+        #check if movie is selected
+        if selected_item=="":
+            messagebox.showerror("Error", "Please select a movie")
+            self.admin_page()
+            return
         movie_details = list(self.tree.item(selected_item, 'values'))
 
         self.clear_content()
@@ -444,7 +516,19 @@ class ShowTime:
         #insert movie name into entry
         self.changemoviepricepage_name_entry.insert(0, movie_name)
 
-        self.changemoviepricepage_price_label=tk.Label(self.changemoviepricepage, text="Price", font=("Arial", 15))
+
+        #show current price of the movie
+        self.changemoviepricepage_current_price_label=tk.Label(self.changemoviepricepage, text="Current Price", font=("Arial", 15))
+        self.changemoviepricepage_current_price_label.pack(pady=10)
+
+        self.changemoviepricepage_current_price_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
+        self.changemoviepricepage_current_price_entry.pack(pady=10)
+
+        #insert current price of the movie
+        self.changemoviepricepage_current_price_entry.insert(0, movie_details[4])
+
+
+        self.changemoviepricepage_price_label=tk.Label(self.changemoviepricepage, text="New Price", font=("Arial", 15))
         self.changemoviepricepage_price_label.pack(pady=10)
 
         self.changemoviepricepage_price_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
@@ -498,6 +582,40 @@ class ShowTime:
         self.userpage_button.pack(pady=20)
 
 #Controller=======================================================================================================================================================================
+
+    #change_password
+    def change_password(self):
+        username=self.troublesigninginpage_username_entry.get()
+        new_password=self.troublesigninginpage_new_password_entry.get()
+        confirm_new_password=self.troublesigninginpage_confirm_new_password_entry.get()
+
+        #validate password and include numbers and special characters
+        if len(new_password)<8:
+            messagebox.showerror("Error", "Password must be atleast 8 characters")
+            return
+        
+        #check password contains numbers and special characters
+        if new_password.isalpha():
+            messagebox.showerror("Error", "Password must contain numbers and special characters")
+            return
+
+        #check if new password and confirm new password are same
+        if new_password!=confirm_new_password:
+            messagebox.showerror("Error", "Passwords do not match")
+            return
+
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("SELECT * FROM showtime.users WHERE username=%s", (username,))
+        if c.fetchone():
+            c.execute("UPDATE showtime.users SET password=%s WHERE username=%s", (new_password, username))
+            messagebox.showinfo("Success", "Password changed successfully")
+            self.login_page()
+        else:
+            messagebox.show
+        conn.commit()
+        conn.close()
+
 
 
     #remove movie from database from focus of treeview
@@ -600,6 +718,26 @@ class ShowTime:
         password=self.createaccountpage_password_entry.get()
         gmail=self.createaccountpage_gmail_entry.get()
 
+        #validate username
+        if len(username)<4:
+            messagebox.showerror("Error", "Username must be atleast 4 characters")
+            return
+        
+        #validate password and include numbers and special characters
+        if len(password)<8:
+            messagebox.showerror("Error", "Password must be atleast 8 characters")
+            return
+        
+        #check password contains numbers and special characters
+        if password.isalpha():
+            messagebox.showerror("Error", "Password must contain numbers and special characters")
+            return
+
+        #validate email contains @ and ends with .com
+        if gmail.find("@")==-1 or gmail.find(".com")==-1:
+            messagebox.showerror("Error", "Enter a valid email address")
+            return
+
         conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.users WHERE username=%s", (username,))
@@ -636,6 +774,32 @@ class ShowTime:
         conn.commit()
         conn.close()
         self.search_movies()
+
+
+    #verify_user
+    #verify username and email
+    def verify_user(self):
+        username=self.troublesigninginpage_username_entry.get()
+        gmail=self.troublesigninginpage_gmail_entry.get()
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("SELECT * FROM showtime.users WHERE username=%s AND gmail=%s", (username, gmail))
+        self.current_user=c.fetchone()
+        print(self.current_user)
+        if self.current_user:
+            messagebox.showinfo("Success", "User verified successfully")
+            #enable password entry
+            self.troublesigninginpage_new_password_entry.config(state="normal")
+            self.troublesigninginpage_confirm_new_password_entry.config(state="normal")
+
+            #enter new password message box
+            messagebox.showinfo("Success", "Enter new password")
+        
+        else:
+            messagebox.showerror("Error", "Wrong username or email")
+        conn.commit()
+        conn.close()
+        
         
 
     def change_movie_price_db(self):

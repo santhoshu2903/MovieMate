@@ -8,6 +8,7 @@ import mysql.connector
 from datetime import datetime
 from time import strftime
 from PIL import Image, ImageTk
+import sv_ttk
 # users_db_path=os.path.join(os.getcwd(), "users.db")
 # bookings_db_path=os.path.join(os.getcwd(), "bookings.db")
 # movies_db_path=os.path.join(os.getcwd(), "movies.db")
@@ -26,14 +27,7 @@ def init_db():
     conn = mysql.connector.connect(**mysql_database)
     cursor = conn.cursor()
     
-    # Create the 'bookings' table
-    cursor.execute("""CREATE TABLE IF NOT EXISTS bookings (
-        booking_id INT AUTO_INCREMENT PRIMARY KEY,
-        movie_id INT NOT NULL,
-        no_of_seats INT NOT NULL,
-        total_price FLOAT NOT NULL,
-        username VARCHAR(255)
-    );""")
+
 
     # Create the 'movies' table
     cursor.execute("""CREATE TABLE IF NOT EXISTS movies (
@@ -42,7 +36,8 @@ def init_db():
         date DATE NOT NULL,
         time TIME NOT NULL,
         seats INT NOT NULL,
-        price FLOAT NOT NULL
+        price FLOAT NOT NULL,
+        movie_image_path VARCHAR(255)
     );""")
 
     # Create the 'users' table
@@ -53,6 +48,18 @@ def init_db():
         lastname VARCHAR(255),
         password VARCHAR(255),
         gmail VARCHAR(255)
+    );""")
+
+        # Create the 'bookings' table
+    cursor.execute("""CREATE TABLE IF NOT EXISTS bookings (
+        booking_id INT AUTO_INCREMENT PRIMARY KEY,
+        movie_id INT NOT NULL,
+        user_id INT NOT NULL default 0,
+        no_of_seats INT NOT NULL,
+        total_price FLOAT NOT NULL,
+        username VARCHAR(255),
+        foreign key (movie_id) references movies(movie_id),
+        foreign key (user_id) references users(user_id)
     );""")
 
     # Commit and close the connection
@@ -66,8 +73,9 @@ class ShowTime:
         super().__init__()
         self.root=tk.Tk()
         self.root.title("Welcome to CMU Movie ticket management system")
-        self.root.geometry("800x700")
+        self.root.geometry("800x600")
         self.show_homepage()
+        sv_ttk.set_theme("light")
 
         # Create a custom style for the Treeview
         self.style = ttk.Style()
@@ -95,16 +103,16 @@ class ShowTime:
         self.homepage.grid_rowconfigure(0, weight=1)
         self.homepage.grid_columnconfigure(0, weight=1)
 
-        self.homepage_label=tk.Label(self.homepage, text="Start Booking, It's Show Time", font=("Arial", 20))
+        self.homepage_label=tk.Label(self.homepage, text="Start Booking, It's", font=("Arial", 20))
         self.homepage_label.config(bg="white")
         self.homepage_label.pack(pady=20)
 
         #display showtime image
         self.showtime_image=Image.open("images/showtime.jpg")
-        self.showtime_image=self.showtime_image.resize((500, 400), Image.LANCZOS)
+        self.showtime_image=self.showtime_image.resize((600, 400), Image.LANCZOS)
         self.showtime_image=ImageTk.PhotoImage(self.showtime_image)
         self.showtime_image_label=tk.Label(self.homepage, image=self.showtime_image)
-        self.showtime_image_label.pack(pady=20)
+        self.showtime_image_label.pack()
 
 
         self.homepage_button=tk.Button(self.homepage, text="Start", font=("Arial", 15), command=self.login_page)
@@ -210,6 +218,7 @@ class ShowTime:
 
     def create_account(self):
         self.clear_content()
+        self.root.geometry("800x700")
         self.createaccountpage=tk.Frame(self.root)
         self.createaccountpage.pack(fill="both", expand=True)
         self.createaccountpage.grid_rowconfigure(0, weight=1)
@@ -272,288 +281,371 @@ class ShowTime:
 
     def admin_page(self):
         self.clear_content()
+        self.root.geometry("1000x700")
         self.adminpage=tk.Frame(self.root)
         self.adminpage.pack(fill="both", expand=True)
-        self.adminpage.grid_rowconfigure(0, weight=1)
-        self.adminpage.grid_columnconfigure(0, weight=1)
+        self.adminpage.grid_rowconfigure(1, weight=1)
+        self.adminpage.grid_columnconfigure(1, weight=1)
 
         self.adminpage_label=tk.Label(self.adminpage, text="Admin Page", font=("Arial", 20))
-        self.adminpage_label.grid(row=0, column=0, columnspan=4, pady=0)
+        self.adminpage_label.grid(row=0, column=0, columnspan=4, pady=0,sticky='nsew')
         # self.adminpage_label.pack(pady=20)
 
-        self.search_label = tk.Label(self.adminpage, text="Search Movie:")
-        self.search_label.grid(row=1, column=0, padx=10, pady=10, sticky='e')
-        self.search_entry = tk.Entry(self.adminpage)
-        self.search_entry.grid(row=1, column=1, padx=10, pady=10, sticky='e')
-        self.search_button = tk.Button(self.adminpage, text="Search", command=self.search_movies)
-        self.search_button.grid(row=1, column=2, padx=10, pady=10, sticky='w')
+        #notebook tabs
+        self.adminpage_notebook=ttk.Notebook(self.adminpage)
+        self.adminpage_notebook.grid(row=1, column=0, columnspan=4, pady=0,sticky='nsew')
 
-        self.adminpage_functions_frame = tk.Frame(self.adminpage)
-        self.adminpage_functions_frame.grid(row=2, column=0,columnspan=4, pady=0)
-        self.adminpage_functions_frame.grid_rowconfigure(0, weight=1)
-        self.adminpage_functions_frame.grid_columnconfigure(0, weight=1)
+        #movies details tab
+        self.adminpage_movies_details_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_movies_details_tab, text="Movies Details")
 
-        self.admin_page_insert_movie_button = tk.Button(self.adminpage_functions_frame, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_page)
-        self.admin_page_insert_movie_button.grid(row=0, column=0, pady=20,padx=20)
+        #book movie tab 
+        self.adminpage_book_movie_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_book_movie_tab, text="Book Movie")
 
-        self.admin_page_change_movie_price_button = tk.Button(self.adminpage_functions_frame, text="Change Movie Price", font=("Arial", 15), command=self.change_movie_price)
-        self.admin_page_change_movie_price_button.grid(row=0, column=1, pady=20,    padx=20)
+        #book movie tab
+        self.adminpage_book_movie_tab.grid_rowconfigure(1, weight=1)
+        self.adminpage_book_movie_tab.grid_columnconfigure(0, weight=1)
 
-        self.admin_page_book_ticket_button = tk.Button(self.adminpage_functions_frame, text="Book Ticket", font=("Arial", 15), command=self.book_movie_page)
-        self.admin_page_book_ticket_button.grid(row=0, column=2, pady=20,  padx=20)
+        #notebook inside book movie tab
+        self.adminpage_book_movie_notebook=ttk.Notebook(self.adminpage_book_movie_tab)
+        self.adminpage_book_movie_notebook.grid(row=1, column=0, columnspan=4, pady=0,sticky='nsew')
 
-        #remove movie button
-        self.admin_page_remove_movie_button = tk.Button(self.adminpage_functions_frame, text="Remove Movie", font=("Arial", 15), command=self.remove_movie)
-        self.admin_page_remove_movie_button.grid(row=0, column=3, pady=20, padx=20)
+        #top trending movies tab
+        self.adminpage_book_movie_top_trending_movies_tab=tk.Frame(self.adminpage_book_movie_notebook)
+        self.adminpage_book_movie_notebook.add(self.adminpage_book_movie_top_trending_movies_tab, text="Top Trending Movies")
+
+        #recently booked movies tab
+        self.adminpage_book_movie_recently_booked_movies_tab=tk.Frame(self.adminpage_book_movie_notebook)
+        self.adminpage_book_movie_notebook.add(self.adminpage_book_movie_recently_booked_movies_tab, text="Recently Booked Movies")
+
+        #all movies tab
+        self.adminpage_book_movie_all_movies_tab=tk.Frame(self.adminpage_book_movie_notebook)
+        self.adminpage_book_movie_notebook.add(self.adminpage_book_movie_all_movies_tab, text="All Movies")
+
+        #upcoming movies tab
+        self.adminpage_book_movie_upcoming_movies_tab=tk.Frame(self.adminpage_book_movie_notebook)
+        self.adminpage_book_movie_notebook.add(self.adminpage_book_movie_upcoming_movies_tab, text="Upcoming Movies")
+
+        #set trending movies tab as default tab
+        self.adminpage_book_movie_notebook.select(self.adminpage_book_movie_top_trending_movies_tab)
+
+        #all movies tab movies image canvas
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas=tk.Canvas(self.adminpage_book_movie_all_movies_tab)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.pack(fill="both", expand=True)
+
+        #all movies tab movies image scrollbar
+        self.adminpage_book_movie_all_movies_tab_movies_image_scrollbar=tk.Scrollbar(self.adminpage_book_movie_all_movies_tab, orient=tk.VERTICAL, command=self.adminpage_book_movie_all_movies_tab_movies_image_canvas.xview)
+        self.adminpage_book_movie_all_movies_tab_movies_image_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        #configure canvas
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.configure(yscrollcommand=self.adminpage_book_movie_all_movies_tab_movies_image_scrollbar.set)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.bind('<Configure>', lambda e: self.adminpage_book_movie_all_movies_tab_movies_image_canvas.configure(scrollregion=self.adminpage_book_movie_all_movies_tab_movies_image_canvas.bbox("all")))
+
+        #create another frame inside canvas
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, anchor="nw")
+
+        #get movies from database and display images
+        # Connect to the MySQL server
+        self.display_all_book_movies()
 
 
-        self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
-        self.admin_page_back_button.grid(row=6, column=0, pady=20)
+        #add movie tab
+        self.adminpage_add_movie_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_add_movie_tab, text="Add Movie")
 
-        # Create a Treeview widget for movie list
-        self.tree = ttk.Treeview(self.adminpage, columns=("Name", "Date", "Time", "Seats", "Price"), show="headings",style="Treeview")
-        self.tree.heading("Name", text="Movie Name")
-        self.tree.column("Name", width=150,anchor='center')
-        self.tree.heading("Date", text="Date")
-        self.tree.column("Date", width=150,anchor='center')
-        self.tree.heading("Time", text="Time")
-        self.tree.column("Time", width=150,anchor='center')
-        self.tree.heading("Seats", text="Seats")
-        self.tree.column("Seats", width=150,anchor='center')
-        self.tree.heading("Price", text="Price")
-        self.tree.column("Price", width=150,anchor='center')
-        self.tree.grid(row=3, column=0, columnspan=4, padx=10, pady=10) 
-
-        # self.tree.bind("<ButtonRelease-1>", self.book_movie_page)
+        #movie reports tab
+        self.adminpage_reports_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_reports_tab, text="Movie Reports")
         
-        # Populate the Treeview with movie data
-        self.search_movies()
+        #users reports tab
+        self.adminpage_users_reports_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_users_reports_tab, text="Users Reports")
 
-        self.admin_page_back_button = tk.Button(self.adminpage, text="Back", font=("Arial", 15), command=self.login_page)
-        self.admin_page_back_button.grid(row=6, column=0, pady=20)
+        #movie details tab
+        self.adminpage_movies_details_tab.grid_rowconfigure(1, weight=1)
+        self.adminpage_movies_details_tab.grid_columnconfigure(0, weight=1)
 
-    def insert_movie_page(self):
-        self.clear_content()
-        self.insertmoviepage = tk.Frame(self.root)
-        self.insertmoviepage.pack(fill="both", expand=True)
-        self.insertmoviepage.grid_rowconfigure(0, weight=1)
-        self.insertmoviepage.grid_columnconfigure(0, weight=1)
+        #notebook inside movie details tab
+        self.adminpage_movies_details_notebook=ttk.Notebook(self.adminpage_movies_details_tab)
+        self.adminpage_movies_details_notebook.grid(row=1, column=0, columnspan=4, pady=0,sticky='nsew')
 
-        self.insertmoviepage_label = tk.Label(self.insertmoviepage, text="Insert Movie", font=("Arial", 20))
-        self.insertmoviepage_label.grid(row=0, column=0, columnspan=2, pady=0)
+        #top trending movies tab
+        self.adminpage_top_trending_movies_tab=tk.Frame(self.adminpage_movies_details_notebook)
+        self.adminpage_movies_details_notebook.add(self.adminpage_top_trending_movies_tab, text="Top Trending Movies")
 
-        # Movie Name
-        self.insertmoviepage_name_label = tk.Label(self.insertmoviepage, text="Movie Name", font=("Arial", 15))
-        self.insertmoviepage_name_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_name_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_name_entry.grid(row=1, column=1, padx=10, pady=10,sticky='w')
+        #upcoming movies tab
+        self.adminpage_upcoming_movies_tab=tk.Frame(self.adminpage_movies_details_notebook)
+        self.adminpage_movies_details_notebook.add(self.adminpage_upcoming_movies_tab, text="Upcoming Movies")
 
-        # Date
-        self.insertmoviepage_date_label = tk.Label(self.insertmoviepage, text="Date", font=("Arial", 15))
-        self.insertmoviepage_date_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
+        #recently booked movies tab
+        self.adminpage_recently_booked_movies_tab=tk.Frame(self.adminpage_movies_details_notebook)
+        self.adminpage_movies_details_notebook.add(self.adminpage_recently_booked_movies_tab, text="Recently Booked Movies")
 
-        self.insertmoviepage_date_entry = DateEntry(self.insertmoviepage, width=18,background="darkblue", foreground="white", date_pattern="MM/dd/yyyy", font=("Arial", 15))
-        self.insertmoviepage_date_entry.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+        #all movies tab
+        self.adminpage_all_movies_tab=tk.Frame(self.adminpage_movies_details_notebook)
+        self.adminpage_movies_details_notebook.add(self.adminpage_all_movies_tab, text="All Movies")
+
+        #set all movies tab as default tab
+        self.adminpage_movies_details_notebook.select(self.adminpage_all_movies_tab)
+
+
+        #all movies tab movies image canvas
+        self.adminpage_all_movies_tab_movies_image_canvas=tk.Canvas(self.adminpage_all_movies_tab)
+        self.adminpage_all_movies_tab_movies_image_canvas.pack(fill="both", expand=True)
+
+        #all movies tab movies image scrollbar
+        self.adminpage_all_movies_tab_movies_image_scrollbar=tk.Scrollbar(self.adminpage_all_movies_tab, orient=tk.VERTICAL, command=self.adminpage_all_movies_tab_movies_image_canvas.xview)
+        self.adminpage_all_movies_tab_movies_image_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        #configure canvas
+        self.adminpage_all_movies_tab_movies_image_canvas.configure(yscrollcommand=self.adminpage_all_movies_tab_movies_image_scrollbar.set)
+        self.adminpage_all_movies_tab_movies_image_canvas.bind('<Configure>', lambda e: self.adminpage_all_movies_tab_movies_image_canvas.configure(scrollregion=self.adminpage_all_movies_tab_movies_image_canvas.bbox("all")))
+
+        #create another frame inside canvas
+        self.adminpage_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.adminpage_all_movies_tab_movies_image_canvas)
+        self.adminpage_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.adminpage_all_movies_tab_movies_image_canvas_frame, anchor="nw")
         
-
-        # Time
-        self.insertmoviepage_time_frame=tk.Frame(self.insertmoviepage)
-        self.insertmoviepage_time_frame.grid(row=3, column=1, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_time_frame.grid_rowconfigure(0, weight=1)
-        self.insertmoviepage_time_frame.grid_columnconfigure(0, weight=1)
-
-        self.hour_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],font=("Arial", 15))
-        self.hour_combobox.set("01")
-        self.hour_combobox.config(width=4)
-        self.hour_combobox.grid(row=0, column=1, padx=(0, 5))
-
-        self.minute_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["00", "15", "30", "45"],font=("Arial", 15))
-        self.minute_combobox.set("00")
-        self.minute_combobox.config(width=4)
-        self.minute_combobox.grid(row=0, column=2, padx=5)
-
-        self.ampm_combobox = ttk.Combobox(self.insertmoviepage_time_frame, values=["AM", "PM"],font=("Arial", 15))
-        self.ampm_combobox.set("AM")
-        self.ampm_combobox.config(width=4)
-        self.ampm_combobox.grid(row=0, column=3, padx=(5, 0))
-
-
-        self.insertmoviepage_time_label = tk.Label(self.insertmoviepage, text="Time", font=("Arial", 15))  
-        self.insertmoviepage_time_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
-        
-        # Total Number of Seats Available
-        self.insertmoviepage_seats_label = tk.Label(self.insertmoviepage, text="Total Number of Seats Available", font=("Arial", 15))
-        self.insertmoviepage_seats_label.grid(row=4, column=0, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_seats_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_seats_entry.grid(row=4, column=1, padx=10, pady=10,    sticky='w')
-
-        # Price
-        self.insertmoviepage_price_label = tk.Label(self.insertmoviepage, text="Price ( USD Per Seat)", font=("Arial", 15))
-        self.insertmoviepage_price_label.grid(row=5, column=0, padx=10, pady=10, sticky='w')
-        self.insertmoviepage_price_entry = tk.Entry(self.insertmoviepage, font=("Arial", 15))
-        self.insertmoviepage_price_entry.grid(row=5, column=1, padx=10, pady=10, sticky='w')
-
-        self.insertmoviepage_button = tk.Button(self.insertmoviepage, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_db)
-        self.insertmoviepage_button.grid(row=6, column=0, columnspan=2, pady=10)
-
-
-        self.insertmoviepage_back_button = tk.Button(self.insertmoviepage, text="Back", font=("Arial", 15), command=self.admin_page)
-        self.insertmoviepage_back_button.grid(row=7, column=0, columnspan=2, pady=10)
-
-        self.insertmoviepage_back_login_button = tk.Button(self.insertmoviepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
-        self.insertmoviepage_back_login_button.grid(row=8, column=0, columnspan=2, pady=10)
+        #get movies from database and display images
+        # Connect to the MySQL server
+        self.display_all_movies()
 
     
-    #book movie page
-    #consists of movie details and booking details
-    #consists of user who is booking the ticket and number of seats they want to buy
-    #seller name, admin or salesperson or user himself
-    def book_movie_page(self):
-        # get movie details from tree focus
-        selected_item = self.tree.focus()
+        #take data from admin to add movie
+        #movie name label and entry side by side
+        self.adminpage_add_movie_name_label=tk.Label(self.adminpage_add_movie_tab, text="Movie Name", font=("Arial", 15))
+        self.adminpage_add_movie_name_label.grid(row=0, column=1, padx=20, pady=20, sticky='w')
+        self.adminpage_add_movie_name_entry=tk.Entry(self.adminpage_add_movie_tab, font=("Arial", 15))
+        self.adminpage_add_movie_name_entry.grid(row=0, column=2, padx=20, pady=20, sticky='w')
 
-        #check if movie is selected
-        if selected_item=="":
-            messagebox.showerror("Error", "Please select a movie")
-            self.admin_page()
-            return
-        movie_details = list(self.tree.item(selected_item, 'values'))
+        #date label and entry side by side
+        self.adminpage_add_movie_date_label=tk.Label(self.adminpage_add_movie_tab, text="Date", font=("Arial", 15))
+        self.adminpage_add_movie_date_label.grid(row=1, column=1, padx=20, pady=20, sticky='w')
+        self.adminpage_add_movie_date_entry=DateEntry(self.adminpage_add_movie_tab, font=("Arial", 15))
+        #increase width of date entry
+        self.adminpage_add_movie_date_entry.config(width=18)
+        self.adminpage_add_movie_date_entry.grid(row=1, column=2, padx=20, pady=20, sticky='w')
 
-        self.clear_content()
+        #time label and entry side by side combobox for time
+        self.adminpage_add_movie_time_label=tk.Label(self.adminpage_add_movie_tab, text="Time", font=("Arial", 15))
+        self.adminpage_add_movie_time_label.grid(row=2, column=1, padx=20, pady=20, sticky='w')
 
-        #display movie details and ask for number of seats to book side by side
-        self.bookmoviepage=tk.Frame(self.root)
-        self.bookmoviepage.pack(fill="both", expand=True)
-        self.bookmoviepage.grid_rowconfigure(0, weight=1)
-        self.bookmoviepage.grid_columnconfigure(0, weight=1)
-
-        # #Book Movie Page Label
-
-        # self.bookmoviepage_label=tk.Label(self.bookmoviepage, text="Book Movie", font=("Arial", 20))
-        # self.bookmoviepage_label.pack(pady=20)
-
-
-        #label and entry side by side
-        self.bookmoviepage_movie_name_label=tk.Label(self.bookmoviepage, text="Movie Name", font=("Arial", 15))
-        self.bookmoviepage_movie_name_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_name_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_movie_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_date_label=tk.Label(self.bookmoviepage, text="Date", font=("Arial", 15))
-        self.bookmoviepage_movie_date_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_date_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_movie_date_entry.grid(row=1, column=1, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_time_label=tk.Label(self.bookmoviepage, text="Time", font=("Arial", 15))
-        self.bookmoviepage_movie_time_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_time_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_movie_time_entry.grid(row=2, column=1, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_price_label=tk.Label(self.bookmoviepage, text="Price ( USD Per Seat)", font=("Arial", 15))
-        self.bookmoviepage_movie_price_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_movie_price_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_movie_price_entry.grid(row=3, column=1, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_no_of_seats_label=tk.Label(self.bookmoviepage, text="Number of Seats", font=("Arial", 15))
-        self.bookmoviepage_no_of_seats_label.grid(row=4, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_no_of_seats_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_no_of_seats_entry.grid(row=4, column=1, padx=10, pady=10, sticky='w')
-    
-        self.bookmoviepage_total_price_label=tk.Label(self.bookmoviepage, text="Total Price", font=("Arial", 15))
-        self.bookmoviepage_total_price_label.grid(row=5, column=0, padx=10, pady=10, sticky='w')
-
-        self.bookmoviepage_total_price_entry=tk.Entry(self.bookmoviepage, font=("Arial", 15))
-        self.bookmoviepage_total_price_entry.grid(row=5, column=1, padx=10, pady=10, sticky='w')
-
-        #fill movie details from tree focus
-        self.bookmoviepage_movie_name_entry.insert(0, movie_details[0])
-        self.bookmoviepage_movie_date_entry.insert(0, movie_details[1])
-        self.bookmoviepage_movie_time_entry.insert(0, movie_details[2])
-        self.bookmoviepage_movie_price_entry.insert(0, movie_details[4])
-
-        #calculate total price
-        self.bookmoviepage_no_of_seats_entry.bind("<KeyRelease>", self.calculate_total_price)
         
-        self.bookmoviepage_button=tk.Button(self.bookmoviepage, text="Book Movie", font=("Arial", 15), command=self.finialize_booking)
-        self.bookmoviepage_button.grid(row=6, column=0, columnspan=2, pady=10)
 
-        self.bookmoviepage_back_button=tk.Button(self.bookmoviepage, text="Back", font=("Arial", 15), command=self.admin_page)
-        self.bookmoviepage_back_button.grid(row=7, column=0, columnspan=2, pady=10)
+        #entry combobox for time
+        #combobox data 
+        time=["01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM"]
+        self.adminpage_add_movie_time_combobox=ttk.Combobox(self.adminpage_add_movie_tab, values=time, font=("Arial", 15))
+        #width of combobox
+        self.adminpage_add_movie_time_combobox.config(width=18)
+        self.adminpage_add_movie_time_combobox.grid(row=2, column=2, padx=20, pady=20, sticky='w')
 
-        self.bookmoviepage_back_login_button=tk.Button(self.bookmoviepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
-        self.bookmoviepage_back_login_button.grid(row=8, column=0, columnspan=2, pady=10)
+        #seats label and entry side by side
+        self.adminpage_add_movie_seats_label=tk.Label(self.adminpage_add_movie_tab, text="No.of Seats", font=("Arial", 15))
+        self.adminpage_add_movie_seats_label.grid(row=3, column=1, padx=20, pady=20, sticky='w')
+        self.adminpage_add_movie_seats_entry=tk.Entry(self.adminpage_add_movie_tab, font=("Arial", 15))
+        self.adminpage_add_movie_seats_entry.grid(row=3, column=2, padx=20, pady=20, sticky='w')
+
+        #price label and entry side by side
+        self.adminpage_add_movie_price_label=tk.Label(self.adminpage_add_movie_tab, text="Price", font=("Arial", 15))
+        self.adminpage_add_movie_price_label.grid(row=4, column=1, padx=20, pady=20, sticky='w')
+        self.adminpage_add_movie_price_entry=tk.Entry(self.adminpage_add_movie_tab, font=("Arial", 15))
+        self.adminpage_add_movie_price_entry.grid(row=4, column=2, padx=20, pady=20, sticky='w')
+
+        #insert movie image button
+        self.adminpage_add_movie_image_button=tk.Button(self.adminpage_add_movie_tab, text="Insert Movie Image", font=("Arial", 15), command=self.upload_image)
+        self.adminpage_add_movie_image_button.grid(row=5, column=1, columnspan=2, pady=10)
+
+        #insert movie button
+        self.adminpage_add_movie_button=tk.Button(self.adminpage_add_movie_tab, text="Insert Movie", font=("Arial", 15), command=self.insert_movie_db)
+        self.adminpage_add_movie_button.grid(row=6, column=1, columnspan=2, pady=10)
+
+        #back button
+        self.adminpage_add_movie_back_button=tk.Button(self.adminpage_add_movie_tab, text="Back", font=("Arial", 15), command=self.admin_page)
+        self.adminpage_add_movie_back_button.grid(row=7, column=1, columnspan=2, pady=10)
 
 
 
-
+    #display_all_book_movies
+    def display_all_book_movies(self):
+        self.all_movies=self.get_all_movies()
+        #iterate one by one from all movies and display images
+        for i, movie in enumerate(self.all_movies):
+            #display movie image as button
+            movie=list(movie)
+            movie = {
+                "movie_id": movie[0],
+                "movie_name": movie[1],
+                "movie_date": movie[2],
+                "movie_time": movie[3],
+                "movie_seats": movie[4],
+                "movie_price": movie[5],
+                "movie_image_path": movie[6]
+            }
+            # print(movie)
+            # print(movie["movie_image_path"])
+            image = Image.open(movie["movie_image_path"])
+            image = image.resize((150, 200), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            row = i // 6  # integer division to get row number
+            col = i % 6 # modulo operator to get column number
+            button = tk.Button(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i))
+            button.image = photo  # Keep a reference to avoid garbage collection
+            button.grid(row=row, column=col, padx=5, pady=5)
 
 
 
 
     
-    def change_movie_price(self):
+    #show movie details
+    def show_movie_details(self, i):
+        #clear all movies tab and fill movie details
+        self.adminpage_all_movies_tab_movies_image_canvas_frame.destroy()
+        self.adminpage_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.adminpage_all_movies_tab_movies_image_canvas)
+        self.adminpage_all_movies_tab_movies_image_canvas_frame.columnconfigure(0, weight=1)
+        self.adminpage_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.adminpage_all_movies_tab_movies_image_canvas_frame, anchor="nw")
+        #get movie details from all movies
+        movie=self.all_movies[i]
+        # print(movie)
+        #image on the left side and movie details on the right side
+        #image
+        image = Image.open(movie[6])
+        image = image.resize((350, 400), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        self.adminpage_all_movies_tab_movies_image_canvas_frame_image_label=tk.Label(self.adminpage_all_movies_tab_movies_image_canvas_frame, image=photo)
+        self.adminpage_all_movies_tab_movies_image_canvas_frame_image_label.image = photo  # Keep a reference to avoid garbage collection
+        self.adminpage_all_movies_tab_movies_image_canvas_frame_image_label.grid(row=0, column=0, padx=5, pady=5)
 
-        #get tree focus and display movie name in the label
-        selected_item = self.tree.focus()
-        movie_details = list(self.tree.item(selected_item, 'values'))
-        print(movie_details)
-        #get movie name
-        movie_name=movie_details[0] 
+        # create a new frame next to the image
+        self.adminpage_all_movies_tab_movies_details_frame = tk.Frame(self.adminpage_all_movies_tab_movies_image_canvas_frame)
+        self.adminpage_all_movies_tab_movies_details_frame.grid(row=0, column=1, padx=5, pady=5, sticky='n')
 
-        self.clear_content()
-        self.changemoviepricepage=tk.Frame(self.root)
-        self.changemoviepricepage.pack(fill="both", expand=True)
-        self.changemoviepricepage.grid_rowconfigure(0, weight=1)
-        self.changemoviepricepage.grid_columnconfigure(0, weight=1)
+        #movie details and details also as label
+        self.adminpage_all_movies_tab_movies_details_frame_movie_name_label=tk.Label(self.adminpage_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_all_movies_tab_movies_details_frame_movie_name_label.grid(row=0, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Movie Name: movie name"
+        self.adminpage_all_movies_tab_movies_details_frame_movie_name_label.config(text="Movie Name: "+movie[1])
 
+        self.adminpage_all_movies_tab_movies_details_frame_movie_date_label=tk.Label(self.adminpage_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_all_movies_tab_movies_details_frame_movie_date_label.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Date: movie date"
+        self.adminpage_all_movies_tab_movies_details_frame_movie_date_label.config(text="Date: "+str(movie[2]))
 
+        self.adminpage_all_movies_tab_movies_details_frame_movie_time_label=tk.Label(self.adminpage_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_all_movies_tab_movies_details_frame_movie_time_label.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Time: movie time"
+        self.adminpage_all_movies_tab_movies_details_frame_movie_time_label.config(text="Time: "+str(movie[3]))
 
+        self.adminpage_all_movies_tab_movies_details_frame_movie_seats_label=tk.Label(self.adminpage_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_all_movies_tab_movies_details_frame_movie_seats_label.grid(row=3, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Seats: movie seats"
+        self.adminpage_all_movies_tab_movies_details_frame_movie_seats_label.config(text="Seats: "+str(movie[4]))
 
-        self.changemoviepricepage_label=tk.Label(self.changemoviepricepage, text="Change Movie Price", font=("Arial", 20))
-        self.changemoviepricepage_label.pack(pady=20)
+        self.adminpage_all_movies_tab_movies_details_frame_movie_price_label=tk.Label(self.adminpage_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_all_movies_tab_movies_details_frame_movie_price_label.grid(row=4, column=0, padx=5, pady=5, sticky='w')
 
-        self.changemoviepricepage_name_label=tk.Label(self.changemoviepricepage, text="Movie Name", font=("Arial", 15))
-        self.changemoviepricepage_name_label.pack(pady=10)
-
-        self.changemoviepricepage_name_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
-        self.changemoviepricepage_name_entry.pack(pady=10)
-
-
-        #insert movie name into entry
-        self.changemoviepricepage_name_entry.insert(0, movie_name)
-
-
-        #show current price of the movie
-        self.changemoviepricepage_current_price_label=tk.Label(self.changemoviepricepage, text="Current Price", font=("Arial", 15))
-        self.changemoviepricepage_current_price_label.pack(pady=10)
-
-        self.changemoviepricepage_current_price_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
-        self.changemoviepricepage_current_price_entry.pack(pady=10)
-
-        #insert current price of the movie
-        self.changemoviepricepage_current_price_entry.insert(0, movie_details[4])
+        #configure label as "Price: movie price"
+        self.adminpage_all_movies_tab_movies_details_frame_movie_price_label.config(text="Price: "+str(movie[5]))  
+        
+        #back button
+        self.adminpage_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.admin_page)
+        self.adminpage_all_movies_tab_movies_details_frame_back_button.grid(row=5, column=0, padx=5, pady=5, sticky='w')
 
 
-        self.changemoviepricepage_price_label=tk.Label(self.changemoviepricepage, text="New Price", font=("Arial", 15))
-        self.changemoviepricepage_price_label.pack(pady=10)
-
-        self.changemoviepricepage_price_entry=tk.Entry(self.changemoviepricepage, font=("Arial", 15))
-        self.changemoviepricepage_price_entry.pack(pady=10)
-
-        self.changemoviepricepage_button=tk.Button(self.changemoviepricepage, text="Change Price ( USD Per Seat)", font=("Arial", 15), command=self.change_movie_price_db)
-        self.changemoviepricepage_button.pack(pady=10)
 
 
-        self.changemoviepricepage_back_button=tk.Button(self.changemoviepricepage, text="Back", font=("Arial", 15), command=self.admin_page)
-        self.changemoviepricepage_back_button.pack(pady=10)
 
-        self.changemoviepricepage_back_login_button=tk.Button(self.changemoviepricepage, text="Back to Login", font=("Arial", 15), command=self.login_page)
-        self.changemoviepricepage_back_login_button.pack(pady=10)
+
+    #book movie
+    def book_movie(self, i):
+        #clear admin page book movie tab all movies tab and fill movie details
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame.destroy()
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame.columnconfigure(0, weight=1)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, anchor="nw")
+        #get movie details from all movies
+        movie=self.all_movies[i]
+        # print(movie)
+        #image on the left side and movie details on the right side
+        #image
+        image = Image.open(movie[6])
+        image = image.resize((350, 400), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(image)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo)
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label.image = photo  # Keep a reference to avoid garbage collection
+        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label.grid(row=0, column=0, padx=5, pady=5)
+
+        # create a new frame next to the image
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame = tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame)
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame.grid(row=0, column=1, padx=5, pady=5, sticky='n')
+
+        #movie details and details also as label
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_name_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_name_label.grid(row=0, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Movie Name: movie name"
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_name_label.config(text="Movie Name: "+movie[1])
+
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_date_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_date_label.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Date: movie date"
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_date_label.config(text="Date: "+str(movie[2]))
+
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_time_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_time_label.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Time: movie time"
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_time_label.config(text="Time: "+str(movie[3]))
+
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_seats_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame,font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_seats_label.grid(row=3, column=0, padx=5, pady=5, sticky='w')
+        #configure label as "Seats: movie seats"
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_seats_label.config(text=" Available Seats: "+str(movie[4]))
+
+        #Name label and entry side by side
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Name", font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_label.grid(row=4, column=0, padx=5, pady=5, sticky='w')
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry.grid(row=4, column=1, padx=5, pady=5, sticky='w')
+
+        #gmail label and entry side by side
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Email", font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_label.grid(row=5, column=0, padx=5, pady=5, sticky='w')
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry.grid(row=5, column=1, padx=5, pady=5, sticky='w')
+
+        #no.of seats label and entry side by side
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="No.of Seats", font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_label.grid(row=6, column=0, padx=5, pady=5, sticky='w')
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.grid(row=6, column=1, padx=5, pady=5, sticky='w')
+
+        #set to 1 as default
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.insert(0, 1)
+
+
+        #Total Price
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Total Price", font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_label.grid(row=7, column=0, padx=5, pady=5, sticky='w')
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.grid(row=7, column=1, padx=5, pady=5, sticky='w')
+
+        #update total price label movie price * no.of seats
+
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.insert(0, movie[5]*int(self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.get()))
+
+        #update total price label when no.of seats changes
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.bind("<KeyRelease>", self.update_total_price())
+
+        #book movie button
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_book_movie_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Book Movie", font=("Arial", 15), command=self.book_movie_db)
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_book_movie_button.grid(row=8, column=0, padx=5, pady=5, sticky='w')
+
+        #back button
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.admin_page)
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button.grid(row=9, column=0, padx=5, pady=5, sticky='w')
+
+
+
 
 
     def salesperson_page(self):
@@ -593,6 +685,163 @@ class ShowTime:
         self.userpage_button.pack(pady=20)
 
 #Controller=======================================================================================================================================================================
+
+    #update_total_price
+    def update_total_price(self):
+        #get no.of seats
+        no_of_seats=self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.get()
+        #get movie price
+        movie_price=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_price_label.cget("text")
+        movie_price=movie_price.split(": ")[1]
+        #update total price
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.delete(0, tk.END)
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.insert(0, float(movie_price)*int(no_of_seats))
+
+
+
+    #book movie db
+    def book_movie_db(self):
+        #get movie name
+        movie_name=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_name_label.cget("text")
+        movie_name=movie_name.split(": ")[1]
+        #get movie date
+        movie_date=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_date_label.cget("text")
+        movie_date=movie_date.split(": ")[1]
+        #get movie time
+        movie_time=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_time_label.cget("text")
+        movie_time=movie_time.split(": ")[1]
+        #get movie seats
+        movie_seats=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_seats_label.cget("text")
+        movie_seats=movie_seats.split(": ")[1]
+        #get movie price
+        movie_price=self.adminpage_book_movie_all_movies_tab_movies_details_frame_movie_price_label.cget("text")
+        movie_price=movie_price.split(": ")[1]
+        #get name
+        name=self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry.get()
+        #get gmail
+        gmail=self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry.get()
+        #get no.of seats
+        no_of_seats=self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_entry.get()
+        #get total price
+        total_price=self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.get()
+
+        #validate name
+        if len(name)==0:
+            messagebox.showerror("Error", "Name cannot be empty")
+            return
+        
+        #validate gmail
+        if len(gmail)==0:
+            messagebox.showerror("Error", "Gmail cannot be empty")
+            return
+        
+        #validate no.of seats
+        if len(no_of_seats)==0:
+            messagebox.showerror("Error", "No.of Seats cannot be empty")
+            return
+        
+        #validate total price
+        if len(total_price)==0:
+            messagebox.showerror("Error", "Total Price cannot be empty")
+            return
+        
+        #validate no.of seats
+        if int(no_of_seats)>int(movie_seats):
+            messagebox.showerror("Error", "No.of Seats cannot be greater than available seats")
+            return
+        
+        #validate no.of seats
+        if int(no_of_seats)<1:
+            messagebox.showerror("Error", "No.of Seats cannot be less than 1")
+            return
+        
+        #validate total price
+        if float(total_price)<float(movie_price):
+            messagebox.showerror("Error", "Total Price cannot be less than movie price")
+            return
+        
+        #validate total price
+        if float(total_price)>float(movie_price)*int(movie_seats):
+            messagebox.showerror("Error", "Total Price cannot be greater than movie price * no.of seats")
+            return
+        
+        #validate gmail
+        if not gmail.endswith("@gmail.com"):
+            messagebox.showerror("Error", "Gmail must end with @gmail.com")
+            return
+        
+        #insert into database
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("INSERT INTO showtime.bookings (movie_name, movie_date, movie_time, movie_seats, movie_price, name, gmail, no_of_seats, total_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (movie_name, movie_date, movie_time, movie_seats, movie_price, name, gmail, no_of_seats, total_price))
+
+
+
+    #display all movies
+    def display_all_movies(self):
+        self.all_movies=self.get_all_movies()
+        #iterate one by one from all movies and display images
+        for i, movie in enumerate(self.all_movies):
+            #display movie image as button
+            movie=list(movie)
+            movie = {
+                "movie_id": movie[0],
+                "movie_name": movie[1],
+                "movie_date": movie[2],
+                "movie_time": movie[3],
+                "movie_seats": movie[4],
+                "movie_price": movie[5],
+                "movie_image_path": movie[6]
+            }
+            # print(movie)
+            # print(movie["movie_image_path"])
+            image = Image.open(movie["movie_image_path"])
+            image = image.resize((150, 200), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            row = i // 6  # integer division to get row number
+            col = i % 6 # modulo operator to get column number
+            button = tk.Button(self.adminpage_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.show_movie_details(i))
+            button.image = photo  # Keep a reference to avoid garbage collection
+            button.grid(row=row, column=col, padx=5, pady=5)
+
+
+        
+
+
+    #get_all_movies
+    def get_all_movies(self):
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("SELECT * FROM showtime.movies")
+        rows=c.fetchall()
+        conn.commit()
+        conn.close()
+        return rows
+
+    #upload image
+    def upload_image(self):
+        self.filename = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=(("jpeg files", "*.jpg"), ("all files", "*.*")))
+        print(self.filename)
+        #messagebox.showinfo("Success", "Image Uploaded")
+        messagebox.showinfo("Success", "Image Uploaded")
+
+        #update insert movie page image button adminpage_add_movie_image_button
+        self.adminpage_add_movie_image_button.config(text="Image Uploaded")
+
+
+    #display_top_trending_movies
+    def display_top_trending_movies(self):
+        pass
+
+    #display_upcoming_movies
+    def display_upcoming_movies(self):
+        pass
+
+    #display_recently_booked_movies
+    def display_recently_booked_movies(self):
+        pass
+
+
 
     #change_password
     def change_password(self):
@@ -764,28 +1013,27 @@ class ShowTime:
     
     #insert movie into database
     def insert_movie_db(self):
-        name=self.insertmoviepage_name_entry.get()
-        date=datetime.strptime(self.insertmoviepage_date_entry.get(),"%m/%d/%Y").date()
-        time=self.hour_combobox.get()+":"+self.minute_combobox.get()+" "+self.ampm_combobox.get()
-        time=datetime.strptime(time, "%I:%M %p").time()
-        seats=int(self.insertmoviepage_seats_entry.get())
-        price=float(self.insertmoviepage_price_entry.get())
+        name=self.adminpage_add_movie_name_entry.get()
+        date=datetime.strptime(self.adminpage_add_movie_date_entry.get(), "%m/%d/%y").date()
+        time=datetime.strptime(self.adminpage_add_movie_time_combobox.get(), "%I:%M %p").time()
+        seats=int(self.adminpage_add_movie_seats_entry.get())
+        price=float(self.adminpage_add_movie_price_entry.get())
+        image_path=self.filename
 
-        print(name, date, time, seats, price)
-        print(type(name), type(date), type(time), type(seats), type(price))
+        # print(name, date, time, seats, price)
+        # print(type(name), type(date), type(time), type(seats), type(price))
         conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.movies WHERE name=%s", (name,))
         if c.fetchone():
             messagebox.showerror("Error", "Movie already exists")
         else:
-            c.execute("INSERT INTO showtime.movies (name, date, time, seats, price) VALUES (%s, %s, %s, %s, %s)", (name, date, time, seats, price))
+            c.execute("INSERT INTO showtime.movies (name, date, time, seats, price, movie_image_path) VALUES (%s, %s, %s, %s, %s,%s)", (name, date, time, seats, price, image_path))
             messagebox.showinfo("Success", "Movie inserted successfully")
             self.admin_page()
         conn.commit()
         conn.close()
-        self.search_movies()
-
+        self.display_all_movies()
 
     #verify_user
     #verify username and email

@@ -494,23 +494,18 @@ class ShowTime:
 
             #current user is admin then in admin book tab
             if self.currentuser_username=='admin':
-                button = tk.Button(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i))
+                button = tk.Button(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i,self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame))
                 button.image = photo
                 button.grid(row=row, column=col, padx=5, pady=5)
             #else if sales person then in sales person book tab
             elif self.currentuser_username=='salesperson':
-                button = tk.Button(self.salespersonpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i))
+                button = tk.Button(self.salespersonpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i,self.salespersonpage_book_movie_all_movies_tab_movies_image_canvas_frame))
                 button.image = photo
                 button.grid(row=row, column=col, padx=5, pady=5)
             else:
-                button = tk.Button(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i))
+                button = tk.Button(self.userpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i,self.userpage_book_movie_all_movies_tab_movies_image_canvas_frame))
                 button.image = photo
                 button.grid(row=row, column=col, padx=5, pady=5)
-
-
-            button = tk.Button(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo, command=lambda i=i: self.book_movie(i))
-            button.image = photo  # Keep a reference to avoid garbage collection
-            button.grid(row=row, column=col, padx=5, pady=5)
 
 
 
@@ -576,12 +571,25 @@ class ShowTime:
 
 
     #book movie
-    def book_movie(self, i):
+    def book_movie(self, i,frame):
         #clear admin page book movie tab all movies tab and fill movie details
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame.destroy()
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas)
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame.columnconfigure(0, weight=1)
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, anchor="nw")
+        frame.destroy()
+        #based on the current user display the movie details
+        #if current user is admin
+        canvas= None
+        if self.currentuser_username=='admin':
+            frame=tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas)
+            canvas=self.adminpage_book_movie_all_movies_tab_movies_image_canvas
+        elif self.currentuser_username=='salesperson':
+            frame=tk.Frame(self.salespersonpage_book_movie_all_movies_tab_movies_image_canvas)
+            canvas=self.salespersonpage_book_movie_all_movies_tab_movies_image_canvas
+        else:
+            frame=tk.Frame(self.userpage_book_movie_all_movies_tab_movies_image_canvas)
+            canvas=self.userpage_book_movie_all_movies_tab_movies_image_canvas
+
+
+        frame.columnconfigure(0, weight=1)
+        canvas.create_window((0, 0), window=frame, anchor="nw")
         #get movie details from all movies
         self.movie=self.all_movies[i]
         self.current_movie_price=self.movie[5]
@@ -591,12 +599,12 @@ class ShowTime:
         image = Image.open(self.movie[6])
         image = image.resize((350, 400), Image.LANCZOS)
         photo = ImageTk.PhotoImage(image)
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame, image=photo)
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label.image = photo  # Keep a reference to avoid garbage collection
-        self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame_image_label.grid(row=0, column=0, padx=5, pady=5)
+        frame_image_label=tk.Label(frame, image=photo)
+        frame_image_label.image = photo  # Keep a reference to avoid garbage collection
+        frame_image_label.grid(row=0, column=0, padx=5, pady=5)
 
         # create a new frame next to the image
-        self.adminpage_book_movie_all_movies_tab_movies_details_frame = tk.Frame(self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame)
+        self.adminpage_book_movie_all_movies_tab_movies_details_frame = tk.Frame(frame)
         self.adminpage_book_movie_all_movies_tab_movies_details_frame.grid(row=0, column=1, padx=5, pady=5, sticky='n')
 
         #movie details and details also as label
@@ -676,6 +684,7 @@ class ShowTime:
 
     def salesperson_page(self):
         self.clear_content()
+        self.root.geometry("1000x700")
         self.salespersonpage=tk.Frame(self.root)
         self.salespersonpage.pack(fill="both", expand=True)
         self.salespersonpage.grid_rowconfigure(0, weight=1)
@@ -692,6 +701,14 @@ class ShowTime:
         #book movie tab
         self.salespersonpage_book_movie_tab.grid_rowconfigure(1, weight=1)
         self.salespersonpage_book_movie_tab.grid_columnconfigure(0, weight=1)
+
+        #movie reports tab
+        self.salespersonpage_reports_tab=tk.Frame(self.salespersonpage_notebook)
+        self.salespersonpage_notebook.add(self.salespersonpage_reports_tab, text="Movie Reports")
+
+        #users reports tab
+        self.salespersonpage_users_reports_tab=tk.Frame(self.salespersonpage_notebook)
+        self.salespersonpage_notebook.add(self.salespersonpage_users_reports_tab, text="Users Reports")
 
         #notebook inside book movie tab
         self.salespersonpage_book_movie_notebook=ttk.Notebook(self.salespersonpage_book_movie_tab)
@@ -743,16 +760,74 @@ class ShowTime:
 
     def user_page(self):
         self.clear_content()
+        self.root.geometry("1000x700")
         self.userpage=tk.Frame(self.root)
         self.userpage.pack(fill="both", expand=True)
         self.userpage.grid_rowconfigure(0, weight=1)
         self.userpage.grid_columnconfigure(0, weight=1)
 
-        self.userpage_label=tk.Label(self.userpage, text="Welcome to Showtime", font=("Arial", 20))
-        self.userpage_label.pack(pady=20)
+        #notebook tabs
+        self.userpage_notebook=ttk.Notebook(self.userpage)
+        self.userpage_notebook.pack(fill="both", expand=True)
 
-        self.userpage_button=tk.Button(self.userpage, text="Start", font=("Arial", 15), command=self.login_page)
-        self.userpage_button.pack(pady=20)
+        #book movie tab
+        self.userpage_book_movie_tab=tk.Frame(self.userpage_notebook)
+        self.userpage_notebook.add(self.userpage_book_movie_tab, text="Book Movie")
+
+        #book movie tab
+        self.userpage_book_movie_tab.grid_rowconfigure(1, weight=1)
+        self.userpage_book_movie_tab.grid_columnconfigure(0, weight=1)
+
+        #my bookings tab
+        self.userpage_my_bookings_tab=tk.Frame(self.userpage_notebook)
+        self.userpage_notebook.add(self.userpage_my_bookings_tab, text="My Bookings")
+
+        #notebook inside book movie tab
+        self.userpage_book_movie_notebook=ttk.Notebook(self.userpage_book_movie_tab)
+        self.userpage_book_movie_notebook.grid(row=1, column=0, columnspan=4, pady=0,sticky='nsew')
+
+        #top trending movies tab
+        self.userpage_book_movie_top_trending_movies_tab=tk.Frame(self.userpage_book_movie_notebook)
+        self.userpage_book_movie_notebook.add(self.userpage_book_movie_top_trending_movies_tab, text="Top Trending Movies")
+
+        #upcoming movies tab
+        self.userpage_book_movie_upcoming_movies_tab=tk.Frame(self.userpage_book_movie_notebook)
+        self.userpage_book_movie_notebook.add(self.userpage_book_movie_upcoming_movies_tab, text="Upcoming Movies")
+
+        #all movies tab
+        self.userpage_book_movie_all_movies_tab=tk.Frame(self.userpage_book_movie_notebook)
+        self.userpage_book_movie_notebook.add(self.userpage_book_movie_all_movies_tab, text="All Movies")
+
+        #set all movies tab as default tab
+        self.userpage_book_movie_notebook.select(self.userpage_book_movie_top_trending_movies_tab)
+
+        #all movies tab movies image canvas
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas=tk.Canvas(self.userpage_book_movie_all_movies_tab)
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas.pack(fill="both", expand=True)
+
+        #all movies tab movies image scrollbar
+        self.userpage_book_movie_all_movies_tab_movies_image_scrollbar=tk.Scrollbar(self.userpage_book_movie_all_movies_tab, orient=tk.VERTICAL, command=self.userpage_book_movie_all_movies_tab_movies_image_canvas.xview)
+        self.userpage_book_movie_all_movies_tab_movies_image_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        #configure canvas
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas.configure(yscrollcommand=self.userpage_book_movie_all_movies_tab_movies_image_scrollbar.set)
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas.bind('<Configure>', lambda e: self.userpage_book_movie_all_movies_tab_movies_image_canvas.configure(scrollregion=self.userpage_book_movie_all_movies_tab_movies_image_canvas.bbox("all")))
+
+        #create another frame inside canvas
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas_frame=tk.Frame(self.userpage_book_movie_all_movies_tab_movies_image_canvas)
+        self.userpage_book_movie_all_movies_tab_movies_image_canvas.create_window((0, 0), window=self.userpage_book_movie_all_movies_tab_movies_image_canvas_frame, anchor="nw")
+
+        #get movies from database and display images
+        # Connect to the MySQL server
+        self.display_all_book_movies()
+
+        #logout button
+        self.userpage_book_movie_all_movies_tab_movies_details_frame_logout_button=tk.Button(self.userpage_book_movie_all_movies_tab_movies_details_frame, text="Logout", font=("Arial", 15), command=self.logout)
+        self.userpage_book_movie_all_movies_tab_movies_details_frame_logout_button.grid(row=10, column=0, padx=5, pady=5, sticky='w')
+
+
+
+
 
 #Controller=======================================================================================================================================================================
 
@@ -1023,14 +1098,15 @@ class ShowTime:
         conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.users WHERE username=%s AND password=%s", (username, password))
+        self.currentuser_username=username
         if c.fetchone():
             messagebox.showinfo("Success", "Login successful")
             if username=="admin" or username=="":
                 self.admin_page()
             if username=="salesperson":
                 self.salesperson_page()
-            # else:
-            #     self.user_page()
+            else:
+                self.user_page()
 
         else:
             messagebox.showerror("Error", "Wrong username or password")
@@ -1112,7 +1188,6 @@ class ShowTime:
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.users WHERE username=%s AND gmail=%s", (username, gmail))
         self.current_user=c.fetchone()
-        self.currentuser_username=self.current_user[1]
         print(self.current_user)
         if self.current_user:
             messagebox.showinfo("Success", "User verified successfully")

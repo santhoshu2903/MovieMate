@@ -787,7 +787,7 @@ class ShowTime:
         # self.adminpage_reports_tab.grid_columnconfigure(0, weight=1)
 
         #treeview of movie reports
-        self.adminpage_reports_tab_treeview=ttk.Treeview(self.adminpage_reports_tab)
+        self.adminpage_reports_tab_treeview=ttk.Treeview(self.adminpage_reports_tab,columns=("movie_name", "release_date", "movie_date", "movie_time", "movie_seats", "movie_price"),show="headings")
         self.adminpage_reports_tab_treeview.pack(fill="both", expand=True)
         #treeview scrollbar
         # self.adminpage_reports_tab_treeview_scrollbar=tk.Scrollbar(self.adminpage_reports_tab, orient=tk.VERTICAL, command=self.adminpage_reports_tab_treeview.yview)
@@ -795,7 +795,6 @@ class ShowTime:
 
 
         #treeview columns
-        self.adminpage_reports_tab_treeview["columns"]=("movie_name", "release_date", "movie_date", "movie_time", "movie_seats", "movie_price")
 
         #treeview headings
         self.adminpage_reports_tab_treeview.heading("#1", text="Movie Name")
@@ -806,12 +805,12 @@ class ShowTime:
         self.adminpage_reports_tab_treeview.heading("#6", text="Show Price")
 
         #treeview column width
-        self.adminpage_reports_tab_treeview.column("#1", width=100)
-        self.adminpage_reports_tab_treeview.column("#2", width=100)
-        self.adminpage_reports_tab_treeview.column("#3", width=100)
-        self.adminpage_reports_tab_treeview.column("#4", width=100)
-        self.adminpage_reports_tab_treeview.column("#5", width=100)
-        self.adminpage_reports_tab_treeview.column("#6", width=100)
+        self.adminpage_reports_tab_treeview.column("#1", width=100, anchor="center")
+        self.adminpage_reports_tab_treeview.column("#2", width=100, anchor="center")
+        self.adminpage_reports_tab_treeview.column("#3", width=100,anchor="center")
+        self.adminpage_reports_tab_treeview.column("#4", width=100,anchor="center")
+        self.adminpage_reports_tab_treeview.column("#5", width=100,anchor="center")
+        self.adminpage_reports_tab_treeview.column("#6", width=100,anchor="center")
 
         #treeview data
         # Connect to the MySQL server
@@ -838,11 +837,69 @@ class ShowTime:
                 }
             # print(movie)
             # print(movie["movie_image_path"])
-            # self.adminpage_reports_tab_treeview.insert('', 'end', values=(movie["movie_name"], movie["release_date"], movie["movie_date"], movie["movie_time"], movie["movie_seats"], movie["movie_price"]))
+            self.adminpage_reports_tab_treeview.insert('', 'end', values=(movie["movie_name"], movie["release_date"], movie["movie_date"], movie["movie_time"], movie["movie_seats"], movie["movie_price"]))
 
         #print as pdf button
         self.adminpage_reports_tab_print_as_pdf_button=tk.Button(self.adminpage_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.movie_reports_print_as_pdf)
         self.adminpage_reports_tab_print_as_pdf_button.pack(pady=10)
+
+        #bookings reports tab
+        self.adminpage_bookings_reports_tab=tk.Frame(self.adminpage_notebook)
+        self.adminpage_notebook.add(self.adminpage_bookings_reports_tab, text="Bookings Reports")
+
+        #bookings reports frame
+        self.adminpage_bookings_reports_tab.grid_columnconfigure(0, weight=1)
+        
+        #treeview of bookings reports
+        self.adminpage_bookings_reports_tab_treeview=ttk.Treeview(self.adminpage_bookings_reports_tab,columns=("Movie Name","Show Date","Name","Gmail","Seats Booked","Total Price"),show="headings")
+        self.adminpage_bookings_reports_tab_treeview.pack(fill="both", expand=True)
+
+        #treeview headings
+        self.adminpage_bookings_reports_tab_treeview.heading("#1", text="Movie Name")
+        self.adminpage_bookings_reports_tab_treeview.heading("#2", text="Show Date")
+        self.adminpage_bookings_reports_tab_treeview.heading("#3", text="Name")
+        self.adminpage_bookings_reports_tab_treeview.heading("#4", text="Gmail")
+        self.adminpage_bookings_reports_tab_treeview.heading("#5", text="Seats Booked")
+        self.adminpage_bookings_reports_tab_treeview.heading("#6", text="Total Price")
+
+        #treeview column width
+        self.adminpage_bookings_reports_tab_treeview.column("#1", width=100, anchor="center")
+        self.adminpage_bookings_reports_tab_treeview.column("#2", width=100, anchor="center")
+        self.adminpage_bookings_reports_tab_treeview.column("#3", width=100,anchor="center")
+        self.adminpage_bookings_reports_tab_treeview.column("#4", width=100,anchor="center")
+        self.adminpage_bookings_reports_tab_treeview.column("#5", width=100,anchor="center")
+        self.adminpage_bookings_reports_tab_treeview.column("#6", width=100,anchor="center")
+
+        #treeview data
+        # Connect to the MySQL server
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all bookings
+        cursor.execute("SELECT * FROM bookings")
+        current_reports=cursor.fetchall()
+        # print(current_reports)
+        #iterate one by one from all movies and display images
+        for i, booking in enumerate(current_reports):
+            booking=list(booking)
+            #display movie image as button
+            booking_id=booking[0]
+            #get movie name and show date from movie id
+            cursor.execute("SELECT * FROM movies WHERE movie_id=%s",(booking[1],))
+            movie=cursor.fetchone()
+            # print(movie)
+            movie=list(movie)
+            movie_name=movie[1]
+            show_date=movie[4]
+            name=booking[4]
+            gmail=booking[5]
+            seats_booked=booking[6]
+            total_price=booking[7]
+
+            self.adminpage_bookings_reports_tab_treeview.insert('', 'end', values=(movie_name, show_date, name, gmail, seats_booked, total_price))
+
+        #print as pdf button
+        self.adminpage_bookings_reports_tab_print_as_pdf_button=tk.Button(self.adminpage_bookings_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.bookings_reports_print_as_pdf)
+        self.adminpage_bookings_reports_tab_print_as_pdf_button.pack(pady=10)
 
 
         
@@ -854,27 +911,16 @@ class ShowTime:
         self.adminpage_users_reports_tab.grid_columnconfigure(0, weight=1)
 
         #treeview of users reports
-        self.adminpage_users_reports_tab_treeview=ttk.Treeview(self.adminpage_users_reports_tab)
+        self.adminpage_users_reports_tab_treeview=ttk.Treeview(self.adminpage_users_reports_tab,columns=("username", "gmail"),show="headings")
         self.adminpage_users_reports_tab_treeview.pack(fill="both", expand=True)
 
-        #treeview scrollbar
-        self.adminpage_users_reports_tab_treeview_scrollbar=tk.Scrollbar(self.adminpage_users_reports_tab, orient=tk.VERTICAL, command=self.adminpage_users_reports_tab_treeview.yview)
-        self.adminpage_users_reports_tab_treeview_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        #configure treeview
-        self.adminpage_users_reports_tab_treeview.configure(yscrollcommand=self.adminpage_users_reports_tab_treeview_scrollbar.set)
-        self.adminpage_users_reports_tab_treeview.bind('<Configure>', lambda e: self.adminpage_users_reports_tab_treeview.configure(scrollregion=self.adminpage_users_reports_tab_treeview.bbox("all")))
-
-        #treeview columns
-        self.adminpage_users_reports_tab_treeview["columns"]=("username", "gmail", )
-
         #treeview headings
-        self.adminpage_users_reports_tab_treeview.heading("username", text="Username")
-        self.adminpage_users_reports_tab_treeview.heading("gmail", text="Gmail")
+        self.adminpage_users_reports_tab_treeview.heading("#1", text="Username")
+        self.adminpage_users_reports_tab_treeview.heading("#2", text="Gmail")
 
         #treeview column width
-        self.adminpage_users_reports_tab_treeview.column("username", width=100)
-        self.adminpage_users_reports_tab_treeview.column("gmail", width=100)
+        self.adminpage_users_reports_tab_treeview.column("#1", width=100,anchor="center")
+        self.adminpage_users_reports_tab_treeview.column("#2", width=100,anchor="center")
 
         #treeview data
         # Connect to the MySQL server
@@ -890,30 +936,19 @@ class ShowTime:
             user=list(user)
             # print(user)
             user = {
-                    "user_id": user[0],
-                    "username": user[1],
-                    "gmail": user[2],
-                    "password": user[3],
-                    "phone_number": user[4],
-                    "address": user[5],
-                    "role": user[6] 
-                }
+                "username": user[1],
+                "gmail": user[6]
+            }
             # print(user)
             # print(user["movie_image_path"])
             self.adminpage_users_reports_tab_treeview.insert(parent='', index='end', iid=i, values=(user["username"], user["gmail"]))
 
+        #pack
+        self.adminpage_users_reports_tab_treeview.pack()
+
         #print as pdf button
         self.adminpage_users_reports_tab_print_as_pdf_button=tk.Button(self.adminpage_users_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.users_reports_print_as_pdf)
         self.adminpage_users_reports_tab_print_as_pdf_button.pack(pady=10)
-
-
-
-
-        
-
-
-        
-
     
         #take data from admin to add movie
         #movie name label and entry side by side
@@ -2097,7 +2132,7 @@ class ShowTime:
         conn.close()
 
         # Create a new PDF object
-        pdf = FPDF()
+        pdf = FPDF(orientation='L', unit='mm', format='A4')
         pdf.add_page()
 
         # Add a title to the page
@@ -2106,29 +2141,34 @@ class ShowTime:
 
         # Add a header to the table
         pdf.set_font("Arial", size=12)
-        pdf.cell(50, 10, txt="Title", border=1)
-        pdf.cell(50, 10, txt="Release Date", border=1)
-        pdf.cell(50, 10, txt="Show Date", border=1)
-        pdf.cell(50, 10, txt="Show Time", border=1)
-        pdf.cell(50, 10, txt="Seats", border=1)
-        pdf.cell(50, 10, txt="Price", border=1)
+        pdf.cell(45, 10, txt="Title", border=1)
+        pdf.cell(45, 10, txt="Release Date", border=1)
+        pdf.cell(45, 10, txt="Show Date", border=1)
+        pdf.cell(45, 10, txt="Show Time", border=1)
+        pdf.cell(45, 10, txt="Available Seats", border=1)
+        pdf.cell(45, 10, txt="Price", border=1)
         pdf.ln()
 
         # Add movie data to the table
         for movie in movies:
             title = movie[1]
-            release_date = movie[2]
-            show_date = movie[4]
-            show_time = movie[5]
-            seats = movie[6]
-            price = movie[7]
+            release_date = movie[2].strftime("%d-%m-%Y")
+            #convert release date to string
+            release_date=str(release_date)
+            show_date = movie[4].strftime("%d-%m-%Y")
+            #convert show date to string
+            show_date=str(show_date)
+            #time is of 19:30:00 format
+            show_time = self.format_timedelta(movie[5])
+            seats = str(movie[6])
+            price = str(movie[7])
 
-            pdf.cell(50, 10, txt=title, border=1)
-            pdf.cell(50, 10, txt=release_date, border=1)
-            pdf.cell(50, 10, txt=show_date, border=1)
-            pdf.cell(50, 10, txt=show_time, border=1)
-            pdf.cell(50, 10, txt=seats, border=1)
-            pdf.cell(50, 10, txt=price, border=1)
+            pdf.cell(45, 10, txt=title, border=1)
+            pdf.cell(45, 10, txt=release_date, border=1)
+            pdf.cell(45, 10, txt=show_date, border=1)
+            pdf.cell(45, 10, txt=show_time, border=1)
+            pdf.cell(45, 10, txt=seats, border=1)
+            pdf.cell(45, 10, txt=price, border=1)
 
             pdf.ln()
 
@@ -2138,6 +2178,14 @@ class ShowTime:
 
         messagebox.showinfo("Success", "Movie Reports Printed Successfully")
         self.admin_page()
+
+    #formated time
+    def format_timedelta(self,td):
+        hours, remainder = divmod(td.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{td.microseconds // 1000:02}"
+
+
 
     #users_reports_print_as_pdf
     def users_reports_print_as_pdf(self):
@@ -2150,7 +2198,7 @@ class ShowTime:
         conn.close()
 
         # Create a new PDF object
-        pdf = FPDF()
+        pdf = FPDF(unit='mm', format='A4')
         pdf.add_page()
 
         # Add a title to the page
@@ -2187,6 +2235,69 @@ class ShowTime:
 
 
         
+    #bookings_reports_print_as_pdf
+    def bookings_reports_print_as_pdf(self):
+        # Get booking details from the database
+        conn = mysql.connector.connect(**mysql_database)
+        c = conn.cursor()
+        c.execute("SELECT * FROM showtime.bookings")
+        bookings = c.fetchall()
+        conn.commit()
+        conn.close()
+
+        # Create a new PDF object
+        pdf = FPDF(orientation='L', unit='mm', format='A4')
+        pdf.add_page()
+
+        # Add a title to the page
+        pdf.set_font("Arial", size=20)
+        pdf.cell(200, 10, txt="Booking Reports", ln=1, align="C")
+
+        # Add a header to the table
+        pdf.set_font("Arial", size=12)
+        pdf.cell(45, 10, txt="Movie Name", border=1)
+        pdf.cell(45, 10, txt="Show Date", border=1)
+        pdf.cell(45, 10, txt="Name", border=1)
+        pdf.cell(45, 10, txt="Gmail", border=1)
+        pdf.cell(45, 10, txt="No.of Seats", border=1)
+        pdf.cell(45, 10, txt="Total Price", border=1)
+        pdf.ln()
+
+        # Add booking data to the table
+        for booking in bookings:
+            movie_id = booking[1]
+            #get movie name from movie id
+            conn = mysql.connector.connect(**mysql_database)
+            c = conn.cursor()
+            c.execute("SELECT * FROM showtime.movies WHERE movie_id=%s", (movie_id,))
+            movie = c.fetchone()
+            movie_name=movie[1]
+            conn.commit()
+            conn.close()
+            movie_date = movie[4].strftime("%d-%m-%Y")
+            #convert movie date to string
+            movie_date=str(movie_date)
+            name = booking[3]
+            gmail = booking[2]
+            no_of_seats = str(booking[5])
+            total_price = str(booking[6])
+
+            pdf.cell(45, 10, txt=movie_name, border=1)
+            pdf.cell(45, 10, txt=movie_date, border=1)
+            pdf.cell(45, 10, txt=name, border=1)
+            pdf.cell(45, 10, txt=gmail, border=1)
+            pdf.cell(45, 10, txt=no_of_seats, border=1)
+            pdf.cell(45, 10, txt=total_price, border=1)
+
+            pdf.ln()
+
+        # Save the PDF with today's date in the "reports" folder
+        today_date = datetime.now().strftime("%d_%m_%Y")
+        pdf.output(f"reports/bookings_{today_date}.pdf")
+
+        messagebox.showinfo("Success", "Booking Reports Printed Successfully")
+        self.admin_page()
+
 
 
 

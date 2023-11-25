@@ -15,9 +15,7 @@ from ttkthemes import ThemedTk
 import pyqrcode
 from fpdf import FPDF
 from datetime import datetime
-# users_db_path=os.path.join(os.getcwd(), "users.db")
-# bookings_db_path=os.path.join(os.getcwd(), "bookings.db")
-# movies_db_path=os.path.join(os.getcwd(), "movies.db")
+
 
 mysql_database = {
     'user': 'root',
@@ -1138,6 +1136,11 @@ class ShowTime:
         #close connection
         conn.close()
 
+        #delete salesperson button side to back button
+        self.adminpage_salesperson_details_delete_salesperson_button=tk.Button(self.adminpage_salesperson_details_tab, text="Delete Salesperson", font=("Arial", 15), command=self.delete_salesperson)
+        self.adminpage_salesperson_details_delete_salesperson_button.pack(side=tk.BOTTOM, padx=5, pady=5, anchor='e')
+
+
         #back button
         self.adminpage_salesperson_details_back_button=tk.Button(self.adminpage_salesperson_details_tab, text="Back", font=("Arial", 15), command=self.admin_page)
         self.adminpage_salesperson_details_back_button.pack(side=tk.BOTTOM, padx=5, pady=5, anchor='e')
@@ -1237,11 +1240,15 @@ class ShowTime:
         #configure label as "Seats Booked: seats booked"
         self.adminpage_all_movies_tab_movies_details_frame_movie_seats_booked_label.config(text="Seats Booked: "+str(seats_booked))
 
+        if current_tab=="Top Trending Movies":
+            #remove from trending movies button
+            self.adminpage_top_trending_movies_tab_movies_details_frame_remove_from_trending_movies_button=tk.Button(movie_frame, text="Remove from Trending Movies", font=("Arial", 15), command=lambda i=movie[0]: self.remove_from_trending_movies(i))
+            self.adminpage_top_trending_movies_tab_movies_details_frame_remove_from_trending_movies_button.grid(row=6, column=0, padx=5, pady=5, sticky='w')
 
         
         #back button
         self.adminpage_all_movies_tab_movies_details_frame_back_button=tk.Button(movie_frame, text="Back", font=("Arial", 15), command=self.admin_page)
-        self.adminpage_all_movies_tab_movies_details_frame_back_button.grid(row=6, column=0, padx=5, pady=5, sticky='w')
+        self.adminpage_all_movies_tab_movies_details_frame_back_button.grid(row=7, column=0, padx=5, pady=5, sticky='w')
 
 
 
@@ -1912,7 +1919,47 @@ class ShowTime:
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.delete(0, tk.END)
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_total_price_entry.insert(0, float(movie_price)*int(no_of_seats))
 
+    #remove_from_trending_movies
+    def remove_from_trending_movies(self, movie_id):
+        #Remove from trending movies list
+        for i in self.trending_movie:
+            if i[0]==movie_id:
+                self.trending_movie.remove(i)
+                break
 
+        #update trending movies column in movies table
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("UPDATE showtime.movies SET trending=%s WHERE movie_id=%s", (0, movie_id))
+        conn.commit()
+        conn.close()
+
+        #suceess message
+        messagebox.showinfo("Success", "Movie Removed From Trending Movies")
+        
+        #back to admin page
+        self.admin_page()
+
+    #delete_salesperson
+    def delete_salesperson(self):
+        #get salesperson gmail from treeview selection
+        salesperson_gmail=self.adminpage_salesperson_details_treeview.item(self.adminpage_salesperson_details_treeview.selection())['values'][3]
+
+        #get user id
+        conn = mysql.connector.connect(**mysql_database)
+        c=conn.cursor()
+        c.execute("SELECT user_id FROM showtime.users WHERE gmail=%s", (salesperson_gmail,))
+        user_id=c.fetchone()[0]
+        #delete from bookings table where user id
+        c.execute("DELETE FROM showtime.bookings WHERE user_id=%s", (user_id,))
+        #now delete user from users table
+        c.execute("DELETE FROM showtime.users WHERE user_id=%s", (user_id,))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "Salesperson Deleted Successfully")
+        self.admin_page()
+        #set salesperson tab as default tab
+        self.adminpage_notebook.select(self.adminpage_salesperson_tab)
 
     #book movie db
     def book_movie_db(self,movie):

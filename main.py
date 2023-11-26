@@ -2654,28 +2654,32 @@ class ShowTime:
 
         # Add a header to the table
         pdf.set_font("Arial", size=12)
-        pdf.cell(50, 10, txt="Username", border=1)
-        pdf.cell(50, 10, txt="Gmail", border=1)
-        pdf.cell(50, 10, txt="Firstname", border=1)
-        pdf.cell(50, 10, txt="Lastname", border=1)
+        pdf.cell(45, 10, txt="Username", border=1)
+        pdf.cell(45, 10, txt="Gmail", border=1)
+        pdf.cell(45, 10, txt="Firstname", border=1)
+        pdf.cell(45, 10, txt="Lastname", border=1)
         pdf.ln()
 
         # Add user data to the table
         for user in users:
-            username = user[0]
-            gmail = user[1]
+            username = user[1]
+            gmail = user[6]
             firstname = user[2]
+            if firstname==None:
+                firstname='Not Set Yet'
             lastname = user[3]
+            if lastname==None:
+                lastname='Not Set Yet'
 
-            pdf.cell(50, 10, txt=username, border=1)
-            pdf.cell(50, 10, txt=gmail, border=1)
-            pdf.cell(50, 10, txt=firstname, border=1)
-            pdf.cell(50, 10, txt=lastname, border=1)
+            pdf.cell(45, 10, txt=username, border=1)
+            pdf.cell(45, 10, txt=gmail, border=1)
+            pdf.cell(45, 10, txt=firstname, border=1)
+            pdf.cell(45, 10, txt=lastname, border=1)
             pdf.ln()
 
         # Save the PDF with today's date in the "reports" folder
         today_date = datetime.now().strftime("%d_%m_%Y")
-        pdf.output(f"reports/users_{today_date}.pdf")
+        pdf.output(f"reports/{self.currentuser_role}_users_{today_date}.pdf")
 
         messagebox.showinfo("Success", "User Reports Printed Successfully")
         self.admin_page()
@@ -2724,10 +2728,10 @@ class ShowTime:
             movie_date = movie[4].strftime("%d-%m-%Y")
             #convert movie date to string
             movie_date=str(movie_date)
-            name = booking[3]
-            gmail = booking[2]
-            no_of_seats = str(booking[5])
-            total_price = str(booking[6])
+            name = booking[4]
+            gmail = booking[5]
+            no_of_seats = str(booking[6])
+            total_price = str(booking[7])
 
             pdf.cell(45, 10, txt=movie_name, border=1)
             pdf.cell(45, 10, txt=movie_date, border=1)
@@ -2740,7 +2744,7 @@ class ShowTime:
 
         # Save the PDF with today's date in the "reports" folder
         today_date = datetime.now().strftime("%d_%m_%Y")
-        pdf.output(f"reports/bookings_{today_date}.pdf")
+        pdf.output(f"reports/{self.currentuser_role}_bookings_{today_date}.pdf")
 
         messagebox.showinfo("Success", "Booking Reports Printed Successfully")
         self.admin_page()

@@ -1347,8 +1347,7 @@ class ShowTime:
         #clear admin page book movie tab all movies tab and fill movie details
         #destroy based on the user
         current_frame=None
-        print(self.currentuser_username)
-        if self.currentuser_username=='admin':
+        if self.currentuser_role=='admin':
             if tab=="top_trending_movies":
                 current_frame=self.adminpage_book_movie_top_trending_movies_tab_movies_image_canvas_frame
                 canvas=self.adminpage_book_movie_top_trending_movies_tab_movies_image_canvas
@@ -1358,7 +1357,7 @@ class ShowTime:
             elif tab=="all_movies":
                 current_frame=self.adminpage_book_movie_all_movies_tab_movies_image_canvas_frame
                 canvas=self.adminpage_book_movie_all_movies_tab_movies_image_canvas
-        elif self.currentuser_username=='salesperson':
+        elif self.currentuser_role=='salesperson':
             if tab=="top_trending_movies":
                 current_frame=self.salespersonpage_book_movie_top_trending_movies_tab_movies_image_canvas_frame
                 canvas=self.salespersonpage_book_movie_top_trending_movies_tab_movies_image_canvas
@@ -1427,12 +1426,19 @@ class ShowTime:
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry.grid(row=4, column=1, padx=5, pady=5, sticky='w')
 
+
         #gmail label and entry side by side
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Email", font=("Arial", 15))
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_label.grid(row=5, column=0, padx=5, pady=5, sticky='w')
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry=tk.Entry(self.adminpage_book_movie_all_movies_tab_movies_details_frame, font=("Arial", 15))
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry.grid(row=5, column=1, padx=5, pady=5, sticky='w')
 
+        if self.currentuser_role=='user':
+            #set name entry as current user name
+            self.adminpage_book_movie_all_movies_tab_movies_details_frame_name_entry.insert(0, self.currentuser_username)
+            #set email entry as current user email
+            self.adminpage_book_movie_all_movies_tab_movies_details_frame_gmail_entry.insert(0, self.current_user_gmail)
+        
         #no.of seats label and entry side by side
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_label=tk.Label(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="No.of Seats", font=("Arial", 15))
         self.adminpage_book_movie_all_movies_tab_movies_details_frame_no_of_seats_label.grid(row=6, column=0, padx=5, pady=5, sticky='w')
@@ -1464,30 +1470,29 @@ class ShowTime:
         #back button
 
         #back button based on current user
-        if self.currentuser_username=='admin':
+        if self.currentuser_role=='admin':
             self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.admin_page)
             self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button.grid(row=9, column=0, padx=5, pady=5, sticky='w')
-        elif self.currentuser_username=='salesperson':
+        elif self.currentuser_role=='salesperson':
             self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.salesperson_page)
             self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button.grid(row=9, column=0, padx=5, pady=5, sticky='w')
-        # else:
-        #     self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.user_page)
-        #     self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button.grid(row=9, column=0, padx=5, pady=5, sticky='w')
+        else:
+            self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button=tk.Button(self.adminpage_book_movie_all_movies_tab_movies_details_frame, text="Back", font=("Arial", 15), command=self.user_page)
+            self.adminpage_book_movie_all_movies_tab_movies_details_frame_back_button.grid(row=9, column=0, padx=5, pady=5, sticky='w')
 
 
     def salesperson_page(self):
         self.clear_content()
-        self.root.geometry("1000x700")
-
-
-        #salesperson page label
-        self.salespersonpage_label=tk.Label(self.salespersonpage, text="Salesperson Page", font=("Arial", 30))
-        self.salespersonpage_label.pack(padx=10, pady=10)
+        self.root.geometry("1000x750")
 
         self.salespersonpage=tk.Frame(self.root)
         self.salespersonpage.pack(fill="both", expand=True)
         self.salespersonpage.grid_rowconfigure(0, weight=1)
         self.salespersonpage.grid_columnconfigure(0, weight=1)
+
+        #salesperson page label
+        self.salespersonpage_label=tk.Label(self.salespersonpage, text="Salesperson Page", font=("Arial", 20))
+        self.salespersonpage_label.pack(padx=10, pady=10)
 
         #notebook tabs
         self.salespersonpage_notebook=ttk.Notebook(self.salespersonpage)
@@ -1502,12 +1507,163 @@ class ShowTime:
         self.salespersonpage_book_movie_tab.grid_columnconfigure(0, weight=1)
 
         #movie reports tab
-        self.salespersonpage_reports_tab=tk.Frame(self.salespersonpage_notebook)
-        self.salespersonpage_notebook.add(self.salespersonpage_reports_tab, text="Movie Reports")
+        self.salespersonpage_movie_reports_tab=tk.Frame(self.salespersonpage_notebook)
+        self.salespersonpage_notebook.add(self.salespersonpage_movie_reports_tab, text="Movie Reports")
+
+        #movie reports tab
+        self.salespersonpage_movie_reports_tab.grid_rowconfigure(1, weight=1)
+        self.salespersonpage_movie_reports_tab.grid_columnconfigure(0, weight=1)
+
+        #treeview of movie reports
+        self.salesperson_movie_reports_tab_treeview=ttk.Treeview(self.salespersonpage_movie_reports_tab,columns=("Movie Name","Release Date","Show Date","Show Time","Seats Available","Price"),show="headings")
+        self.salesperson_movie_reports_tab_treeview.pack(fill="both", expand=True)
+
+        #treeview headings
+        self.salesperson_movie_reports_tab_treeview.heading("#1", text="Movie Name")
+        self.salesperson_movie_reports_tab_treeview.heading("#2", text="Release Date")
+        self.salesperson_movie_reports_tab_treeview.heading("#3", text="Show Date")
+        self.salesperson_movie_reports_tab_treeview.heading("#4", text="Show Time")
+        self.salesperson_movie_reports_tab_treeview.heading("#5", text="Seats Available")
+        self.salesperson_movie_reports_tab_treeview.heading("#6", text="Price")
+
+        #treeview column width
+        self.salesperson_movie_reports_tab_treeview.column("#1", width=100, anchor="center")
+        self.salesperson_movie_reports_tab_treeview.column("#2", width=100, anchor="center")
+        self.salesperson_movie_reports_tab_treeview.column("#3", width=100,anchor="center")
+        self.salesperson_movie_reports_tab_treeview.column("#4", width=100,anchor="center")
+        self.salesperson_movie_reports_tab_treeview.column("#5", width=100,anchor="center")
+        self.salesperson_movie_reports_tab_treeview.column("#6", width=100,anchor="center")
+
+        #treeview data
+        # Connect to the MySQL server
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all movies
+        cursor.execute("SELECT * FROM movies")
+        current_reports=cursor.fetchall()
+        # print(current_reports)
+        #iterate one by one from all movies and display images
+        for i, movie in enumerate(current_reports):
+            movie=list(movie)
+            #display movie image as button
+            movie_name=movie[1]
+            release_date=movie[2]
+            show_date=movie[4]
+            show_time=movie[5]
+            seats_available=movie[6]
+            price=movie[7]
+
+            self.salesperson_movie_reports_tab_treeview.insert('', 'end', values=(movie_name, release_date, show_date, show_time, seats_available, price)) 
+
+        #print as pdf button
+        self.adminpage_bookings_reports_tab_print_as_pdf_button=tk.Button(self.salespersonpage_movie_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.movie_reports_print_as_pdf)
+        self.adminpage_bookings_reports_tab_print_as_pdf_button.pack(pady=10)
+
+
+
+        #booking reports tab
+        self.salespersonpage_bookings_reports_tab=tk.Frame(self.salespersonpage_notebook)
+        self.salespersonpage_notebook.add(self.salespersonpage_bookings_reports_tab, text="Bookings Reports")
+
+        #booking reports tab
+        self.salespersonpage_bookings_reports_tab.grid_rowconfigure(1, weight=1)
+        self.salespersonpage_bookings_reports_tab.grid_columnconfigure(0, weight=1)
+
+        #treeview of bookings reports
+        self.salesperson_booking_reports_tab_treeview=ttk.Treeview(self.salespersonpage_bookings_reports_tab,columns=("Movie Name","Show Date","Name","Gmail","Seats Booked","Total Price"),show="headings")
+        self.salesperson_booking_reports_tab_treeview.pack(fill="both", expand=True)
+
+        #treeview headings
+        self.salesperson_booking_reports_tab_treeview.heading("#1", text="Movie Name")
+        self.salesperson_booking_reports_tab_treeview.heading("#2", text="Show Date")
+        self.salesperson_booking_reports_tab_treeview.heading("#3", text="Name")
+        self.salesperson_booking_reports_tab_treeview.heading("#4", text="Gmail")
+        self.salesperson_booking_reports_tab_treeview.heading("#5", text="Seats Booked")
+        self.salesperson_booking_reports_tab_treeview.heading("#6", text="Total Price")
+
+        #treeview column width
+        self.salesperson_booking_reports_tab_treeview.column("#1", width=100, anchor="center")
+        self.salesperson_booking_reports_tab_treeview.column("#2", width=100, anchor="center")
+        self.salesperson_booking_reports_tab_treeview.column("#3", width=100,anchor="center")
+        self.salesperson_booking_reports_tab_treeview.column("#4", width=100,anchor="center")
+        self.salesperson_booking_reports_tab_treeview.column("#5", width=100,anchor="center")
+        self.salesperson_booking_reports_tab_treeview.column("#6", width=100,anchor="center")
+
+        #treeview data
+        # Connect to the MySQL server
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all bookings
+        cursor.execute("SELECT * FROM bookings")
+        current_reports=cursor.fetchall()
+        # print(current_reports)
+        #iterate one by one from all movies and display images
+        for i, booking in enumerate(current_reports):
+            booking=list(booking)
+            #display movie image as button
+            booking_id=booking[0]
+            #get movie name and show date from movie id
+            cursor.execute("SELECT * FROM movies WHERE movie_id=%s",(booking[1],))
+            movie=cursor.fetchone()
+            # print(movie)
+            movie=list(movie)
+            movie_name=movie[1]
+            show_date=movie[4]
+            name=booking[4]
+            gmail=booking[5]
+            seats_booked=booking[6]
+            total_price=booking[7]
+
+            self.salesperson_booking_reports_tab_treeview.insert('', 'end', values=(movie_name, show_date, name, gmail, seats_booked, total_price))
+
+        #print as pdf button
+        self.adminpage_bookings_reports_tab_print_as_pdf_button=tk.Button(self.salespersonpage_bookings_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.bookings_reports_print_as_pdf)
+        self.adminpage_bookings_reports_tab_print_as_pdf_button.pack(pady=10)
+
 
         #users reports tab
         self.salespersonpage_users_reports_tab=tk.Frame(self.salespersonpage_notebook)
         self.salespersonpage_notebook.add(self.salespersonpage_users_reports_tab, text="Users Reports")
+
+        #users reports tab
+        self.salespersonpage_users_reports_tab.grid_rowconfigure(1, weight=1)
+        self.salespersonpage_users_reports_tab.grid_columnconfigure(0, weight=1)
+
+        #treeview of users reports
+        self.salesperson_users_reports_tab_treeview=ttk.Treeview(self.salespersonpage_users_reports_tab,columns=("Username","Gmail",),show="headings")
+        self.salesperson_users_reports_tab_treeview.pack(fill="both", expand=True)
+
+        #treeview headings
+        self.salesperson_users_reports_tab_treeview.heading("#1", text="Username")
+        self.salesperson_users_reports_tab_treeview.heading("#2", text="Gmail")
+
+        #treeview column width
+        self.salesperson_users_reports_tab_treeview.column("#1", width=100, anchor="center")
+        self.salesperson_users_reports_tab_treeview.column("#2", width=100, anchor="center")
+
+        #treeview data
+        # Connect to the MySQL server
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all bookings
+        cursor.execute("SELECT * FROM users")
+        current_reports=cursor.fetchall()
+        # print(current_reports)
+        #iterate one by one from all movies and display images
+        for i, user in enumerate(current_reports):
+            user=list(user)
+            #display movie image as button
+            username=user[1]
+            gmail=user[6]
+
+            self.salesperson_users_reports_tab_treeview.insert('', 'end', values=(username, gmail))
+
+        #print as pdf button
+        self.adminpage_bookings_reports_tab_print_as_pdf_button=tk.Button(self.salespersonpage_users_reports_tab, text="Print as PDF", font=("Arial", 15), command=self.users_reports_print_as_pdf)
+        self.adminpage_bookings_reports_tab_print_as_pdf_button.pack(pady=10)
+
+
+
 
         #notebook inside book movie tab
         self.salespersonpage_book_movie_notebook=ttk.Notebook(self.salespersonpage_book_movie_tab)
@@ -1520,6 +1676,67 @@ class ShowTime:
         #recently booked movies tab
         self.salespersonpage_book_movie_recently_booked_movies_tab=tk.Frame(self.salespersonpage_book_movie_notebook)
         self.salespersonpage_book_movie_notebook.add(self.salespersonpage_book_movie_recently_booked_movies_tab, text="Recently Booked Movies")
+
+        #recently booked movies image canvas
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas=tk.Canvas(self.salespersonpage_book_movie_recently_booked_movies_tab)
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.pack(fill="both", expand=True)
+
+        #recently booked movies image scrollbar
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_scrollbar=tk.Scrollbar(self.salespersonpage_book_movie_recently_booked_movies_tab, orient=tk.VERTICAL, command=self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.xview)
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        #configure canvas
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.configure(yscrollcommand=self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_scrollbar.set)
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.bind('<Configure>', lambda e: self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.configure(scrollregion=self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.bbox("all")))
+
+        #create another frame inside canvas
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame=tk.Frame(self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas)
+        self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas.create_window((0, 0), window=self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame, anchor="nw")
+
+        #get movies from database and display images
+        # Connect to the MySQL server
+        #from bookings table get all booking with user)gmail=current user gmail
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all bookings
+        cursor.execute("SELECT * FROM bookings WHERE agent_mail=%s",(self.current_user_gmail,))
+        self.recently_booked_movies=cursor.fetchall()
+        # print(self.recently_booked_movies)
+        #iterate one by one from all movies and display images
+        for i, booking in enumerate(self.recently_booked_movies):
+            movie_id=booking[1]
+            #get movie details from movie id
+            cursor.execute("SELECT * FROM movies WHERE movie_id=%s",(movie_id,))
+            movie=cursor.fetchone()
+            # print(movie)
+            movie=list(movie)
+            movie = {
+                "movie_id": movie[0],
+                "movie_name": movie[1],
+                "release_date": movie[2],
+                "movie_date": movie[4],
+                "movie_time": movie[5],
+                "movie_seats": movie[6],
+                "movie_price": movie[7],
+                "movie_image_path": movie[8]   
+            }
+            # print(movie)
+            # print(movie["movie_image_path"])
+            image = Image.open(movie["movie_image_path"])
+            image = image.resize((150, 200), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            row = i // 6
+            col = i % 6
+
+            salesperson_recently_booked_movies_button = tk.Button(self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame, image=photo, command=lambda movie=movie: self.book_movie(movie["movie_id"],"recently_booked_movies"))
+            salesperson_recently_booked_movies_button.image = photo
+            salesperson_recently_booked_movies_button.grid(row=row, column=col, padx=5, pady=5)
+
+            #no of tickets booked
+            self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame_no_of_tickets_booked_label=tk.Label(self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame, text="No.of Tickets Booked: "+str(booking[6]), font=("Arial", 10))
+            self.salespersonpage_book_movie_recently_booked_movies_tab_movies_image_canvas_frame_no_of_tickets_booked_label.grid(row=row+1, column=col, padx=5, pady=5)
+
+        
 
         #all movies tab
         self.salespersonpage_book_movie_all_movies_tab=tk.Frame(self.salespersonpage_book_movie_notebook)
@@ -1885,29 +2102,213 @@ class ShowTime:
         self.userpage_my_bookings_tab_movies_image_canvas_frame=tk.Frame(self.userpage_my_bookings_tab_movies_image_canvas)
         self.userpage_my_bookings_tab_movies_image_canvas.create_window((0, 0), window=self.userpage_my_bookings_tab_movies_image_canvas_frame, anchor="nw")
 
-        #get movies booked by user from bookings table and display images
+        #get movies from database and display images
         # Connect to the MySQL server
-        # conn = mysql.connector.connect(**mysql_database)
-        # c=conn.cursor()
-        # c.execute("SELECT * FROM showtime.bookings WHERE gmail=%s", (self.currentuser_gmail,))
-        # my_bookings=c.fetchall()
-        # # print(my_bookings)
-        # for i, booking in enumerate(my_bookings):
-        #     #booking details
-    
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        #get all bookings where agent mail=current user gmail
+        cursor.execute("SELECT * FROM bookings WHERE agent_mail=%s",(self.current_user_gmail,))
+        self.my_bookings=cursor.fetchall()
+        # print(self.my_bookings)
+        #iterate one by one from all movies and display images
+        for i, booking in enumerate(self.my_bookings):
+            movie_id=booking[1]
+            #get movie details from movie id
+            cursor.execute("SELECT * FROM movies WHERE movie_id=%s",(movie_id,))
+            movie=cursor.fetchone()
+            # print(movie)
+            movie=list(movie)
+            movie = {
+                "movie_id": movie[0],
+                "movie_name": movie[1],
+                "release_date": movie[2],
+                "movie_date": movie[4],
+                "movie_time": movie[5],
+                "movie_seats": movie[6],
+                "movie_price": movie[7],
+                "movie_image_path": movie[8]   
+            }
+            # print(movie)
+            # print(movie["movie_image_path"])
+            image = Image.open(movie["movie_image_path"])
+            image = image.resize((150, 200), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            row = i // 6
+            col = i % 6
 
-        #     #display seats booked under each movie
-        #     #get no.of seats booked for this movie
-        #     c.execute("SELECT SUM(no_of_seats) FROM showtime.bookings WHERE movie_id=%s", (movie["movie_id"],))
+            user_my_bookings_button = tk.Button(self.userpage_my_bookings_tab_movies_image_canvas_frame, image=photo, command=lambda movie=movie: self.book_movie(movie["movie_id"],"my_bookings"))
+            user_my_bookings_button.image = photo
+            user_my_bookings_button.grid(row=row, column=col, padx=5, pady=5)
+
+            #no of tickets booked
+            self.userpage_my_bookings_tab_movies_image_canvas_frame_no_of_tickets_booked_label=tk.Label(self.userpage_my_bookings_tab_movies_image_canvas_frame, text="No.of Tickets Booked: "+str(booking[6]), font=("Arial", 10))
+            self.userpage_my_bookings_tab_movies_image_canvas_frame_no_of_tickets_booked_label.grid(row=row+1, column=col, padx=5, pady=5)
+
+        #My Profile tab
+        self.userpage_my_profile_tab=tk.Frame(self.userpage_notebook)
+        self.userpage_notebook.add(self.userpage_my_profile_tab, text="My Profile")
+
+        #My Profile tab
+        self.userpage_my_profile_tab.grid_rowconfigure(1, weight=1)
+        self.userpage_my_profile_tab.grid_columnconfigure(0, weight=1)
+
+        #My Profile tab frame
+        self.userpage_my_profile_tab_frame=tk.Frame(self.userpage_my_profile_tab)
+        self.userpage_my_profile_tab_frame.pack(fill="both", expand=True)
+
+        #display user details from self.user
+        #if user has first name and last name then display it
+        if self.user[1] and self.user[2]:
+            #user name label
+            self.userpage_my_profile_tab_frame_username_label=tk.Label(self.userpage_my_profile_tab_frame, text="Username: "+self.user[1], font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_username_label.pack(padx=5, pady=5, anchor='w')
+
+            #full name label
+            self.userpage_my_profile_tab_frame_fullname_label=tk.Label(self.userpage_my_profile_tab_frame, text="Full Name: "+self.user[2]+" "+self.user[3], font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_fullname_label.pack(padx=5, pady=5, anchor='w')
+
+            #gmail label
+            self.userpage_my_profile_tab_frame_gmail_label=tk.Label(self.userpage_my_profile_tab_frame, text="Gmail: "+self.user[4], font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_gmail_label.pack(padx=5, pady=5, anchor='w')
+
+            #total movies booked label
+            #get count of bookings where agent mail=current user gmail
+            conn = mysql.connector.connect(**mysql_database)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM bookings WHERE agent_mail=%s",(self.current_user_gmail,))
+            total_bookings=cursor.fetchone()[0]
+            # print(total_bookings)
+            self.userpage_my_profile_tab_frame_total_movies_booked_label=tk.Label(self.userpage_my_profile_tab_frame, text="Total Movies Booked: "+str(total_bookings), font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_total_movies_booked_label.pack(padx=5, pady=5, anchor='w')
+
+        else:
+            #get details to get full name and all details and insert into users table
+            #username label and entry seperatly
+            self.userpage_my_profile_tab_frame_username_label=tk.Label(self.userpage_my_profile_tab_frame, text="Username: ", font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_username_label.pack(padx=5, pady=5, anchor='w')
+
+            self.userpage_my_profile_tab_frame_username_entry=tk.Entry(self.userpage_my_profile_tab_frame, font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_username_entry.pack(padx=5, pady=5, anchor='w')
+
+            #fill the username entry with current username
+            self.userpage_my_profile_tab_frame_username_entry.insert(0, self.user[1])
+
+            #first name label and entry seperatly
+            self.userpage_my_profile_tab_frame_first_name_label=tk.Label(self.userpage_my_profile_tab_frame, text="First Name: ", font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_first_name_label.pack(padx=5, pady=5, anchor='w')
+
+            self.userpage_my_profile_tab_frame_first_name_entry=tk.Entry(self.userpage_my_profile_tab_frame, font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_first_name_entry.pack(padx=5, pady=5, anchor='w')
+
+            #last name label and entry seperatly
+            self.userpage_my_profile_tab_frame_last_name_label=tk.Label(self.userpage_my_profile_tab_frame, text="Last Name: ", font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_last_name_label.pack(padx=5, pady=5, anchor='w')
+
+            self.userpage_my_profile_tab_frame_last_name_entry=tk.Entry(self.userpage_my_profile_tab_frame, font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_last_name_entry.pack(padx=5, pady=5, anchor='w')
+
+            #gmail label and entry seperatly
+            self.userpage_my_profile_tab_frame_gmail_label=tk.Label(self.userpage_my_profile_tab_frame, text="Gmail: ", font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_gmail_label.pack(padx=5, pady=5, anchor='w')
+
+            self.userpage_my_profile_tab_frame_gmail_entry=tk.Entry(self.userpage_my_profile_tab_frame, font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_gmail_entry.pack(padx=5, pady=5, anchor='w')
+
+            #fill the gmail entry with current gmail
+            self.userpage_my_profile_tab_frame_gmail_entry.insert(0, self.user[6])
+
+            #password label and entry seperatly
+            self.userpage_my_profile_tab_frame_password_label=tk.Label(self.userpage_my_profile_tab_frame, text="Password: ", font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_password_label.pack(padx=5, pady=5, anchor='w')
+
+            self.userpage_my_profile_tab_frame_password_entry=tk.Entry(self.userpage_my_profile_tab_frame, font=("Arial", 15))
+            self.userpage_my_profile_tab_frame_password_entry.pack(padx=5, pady=5, anchor='w')
+
+            #update button
+            self.userpage_my_profile_tab_frame_update_button=tk.Button(self.userpage_my_profile_tab_frame, text="Update", font=("Arial", 15), command=self.update_user_details)
+            self.userpage_my_profile_tab_frame_update_button.pack(padx=5, pady=5, anchor='w')
+
+
+
 
         #logout button
-        self.userpage_book_movie_all_movies_tab_movies_details_frame_logout_button=tk.Button(self.user_page, text="Logout", font=("Arial", 15), command=self.show_homepage)
+        self.userpage_book_movie_all_movies_tab_movies_details_frame_logout_button=tk.Button(self.userpage, text="Logout", font=("Arial", 15), command=self.show_homepage)
         self.userpage_book_movie_all_movies_tab_movies_details_frame_logout_button.pack(side=tk.BOTTOM, padx=5, pady=5, anchor='e')
 
 
 
 
 #Controller=======================================================================================================================================================================
+
+    #update_user_details
+    def update_user_details(self):
+        #get username
+        username=self.userpage_my_profile_tab_frame_username_entry.get()
+        #get first name
+        first_name=self.userpage_my_profile_tab_frame_first_name_entry.get()
+        #get last name
+        last_name=self.userpage_my_profile_tab_frame_last_name_entry.get()
+        #get gmail
+        gmail=self.userpage_my_profile_tab_frame_gmail_entry.get()
+        #get password
+        password=self.userpage_my_profile_tab_frame_password_entry.get()
+
+        #validate username
+        if len(username)==0:
+            messagebox.showerror("Error", "Username cannot be empty")
+            return
+        
+        #validate first name
+        if len(first_name)==0:
+            messagebox.showerror("Error", "First Name cannot be empty")
+            return
+        
+        #validate last name
+        if len(last_name)==0:
+            messagebox.showerror("Error", "Last Name cannot be empty")
+            return
+        
+        #validate gmail
+        if len(gmail)==0:
+            messagebox.showerror("Error", "Gmail cannot be empty")
+            return
+        
+        #validate password
+        if len(password)==0:
+            messagebox.showerror("Error", "Password cannot be empty")
+            return
+        
+        #validate gmail
+        if not gmail.endswith("@gmail.com"):
+            messagebox.showerror("Error", "Gmail must end with @gmail.com")
+            return
+        
+        #update user details
+        conn = mysql.connector.connect(**mysql_database)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET username=%s, firstname=%s, lastname=%s, gmail=%s, password=%s WHERE user_id=%s",(username,first_name,last_name,gmail,password,self.user[0],))
+
+        #update current user details
+        self.current_user_gmail=gmail
+
+        #update self.user
+        self.user=list(self.user)
+        self.user[1]=username
+        self.user[2]=first_name
+        self.user[3]=last_name
+        self.user[4]=gmail
+        self.user[5]=password
+        self.user=tuple(self.user)
+
+        #update bookings table where agent mail=current user gmail
+        cursor.execute("UPDATE bookings SET agent_mail=%s WHERE agent_mail=%s",(gmail,self.current_user_gmail,))
+
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Success", "User Details Updated Successfully")
+        self.user_page()
+        #set my profile tab as default tab
+        self.userpage_notebook.select(self.userpage_my_profile_tab)
 
     #update_total_price
     def update_total_price(self,event):
@@ -2020,15 +2421,14 @@ class ShowTime:
         
         #check if user exists with gmail of not create one
         conn = mysql.connector.connect(**mysql_database)
+        conn.autocommit=True
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.users WHERE gmail=%s", (gmail,))
         if not c.fetchone():
-            c.execute("INSERT INTO showtime.users (username,gmail) VALUES (%s,%s)", (name,gmail,))
+            c.execute("INSERT INTO showtime.users (username,gmail,password) VALUES (%s,%s,%s)", (name,gmail,name))
         #get recently created user id
         c.execute("SELECT user_id FROM showtime.users WHERE gmail=%s", (gmail,))
         user_id=c.fetchone()[0]
-        conn.commit()
-
         agent_mail=None
         if agent_name=='admin':
             agent_mail='admin'
@@ -2043,29 +2443,22 @@ class ShowTime:
 
         #get recently created booking id
         c.execute("SELECT booking_id FROM showtime.bookings WHERE movie_id=%s AND user_id=%s", (movie_id, user_id))
-        booking_id=c.fetchone()[0]
-
-        conn.commit()
+        booking=c.fetchone()
+        booking_id=booking[0]
         conn.close()
         messagebox.showinfo("Success", "Movie Booked Successfully")
-        self.booking_confirmation_page(booking_id)
+        self.booking_confirmation_page(booking_id,movie,name,no_of_seats,total_price)
 
     #booking_confirmation_page
-    def booking_confirmation_page(self, booking_id):
+    def booking_confirmation_page(self, booking_id, movie, name, no_of_seats, total_price):
         #open new window
         self.bookingconfirmationpage=tk.Toplevel(self.root) 
         self.bookingconfirmationpage.title("Booking Confirmation")
         self.bookingconfirmationpage.geometry("500x700")
         
         #get movie details from booking id
-        conn = mysql.connector.connect(**mysql_database)
-        c=conn.cursor()
-        c.execute("SELECT * FROM showtime.bookings WHERE booking_id=%s", (booking_id,))
-        booking_details=c.fetchone()[1]
-        c.execute("SELECT * FROM showtime.movies WHERE movie_id=%s", (booking_details,))
-        movie_details=c.fetchone()
-        conn.commit()
-        conn.close()
+        movie_details=list(movie)
+
     
 
         #display unique qr code with the booking details
@@ -2095,9 +2488,9 @@ class ShowTime:
         movie_name=movie_details[1]
         movie_date=movie_details[4]
         movie_time=movie_details[5]
-        name=booking_details[3]
-        movie_seats=booking_details[5]
-        movie_total_price=booking_details[6]
+        name=name
+        movie_seats=no_of_seats
+        movie_total_price=total_price
 
         #insert movie name into label as "Movie Name : movie_name"
         self.bookingconfirmationpage_booking_details_frame_movie_name=tk.Label(self.bookingconfirmationpage_booking_details_frame, text=f"Movie Name : {movie_name}", font=("Arial", 15))
@@ -2126,8 +2519,15 @@ class ShowTime:
 
         #back to home button
         #destroy booking confirmation page and show homepage
-        self.bookingconfirmationpage_back_to_home_button=tk.Button(self.bookingconfirmationpage, text="Back To Home", font=("Arial", 15), command=lambda: [self.bookingconfirmationpage.destroy(),self.admin_page()])
-        self.bookingconfirmationpage_back_to_home_button.pack(padx=10, pady=10)
+        if self.currentuser_role=='admin':
+            self.bookingconfirmationpage_back_to_home_button=tk.Button(self.bookingconfirmationpage, text="Back To Home", font=("Arial", 15), command=lambda: [self.bookingconfirmationpage.destroy(),self.admin_page()])
+            self.bookingconfirmationpage_back_to_home_button.pack(padx=10, pady=10)
+        elif self.currentuser_role=='salesperson':
+            self.bookingconfirmationpage_back_to_home_button=tk.Button(self.bookingconfirmationpage, text="Back To Home", font=("Arial", 15), command=lambda: [self.bookingconfirmationpage.destroy(),self.salesperson_page()])
+            self.bookingconfirmationpage_back_to_home_button.pack(padx=10, pady=10)
+        else:
+            self.bookingconfirmationpage_back_to_home_button=tk.Button(self.bookingconfirmationpage, text="Back To Home", font=("Arial", 15), command=lambda: [self.bookingconfirmationpage.destroy(),self.user_page()])
+            self.bookingconfirmationpage_back_to_home_button.pack(padx=10, pady=10)
 
 
 
@@ -2504,17 +2904,17 @@ class ShowTime:
         conn = mysql.connector.connect(**mysql_database)
         c=conn.cursor()
         c.execute("SELECT * FROM showtime.users WHERE username=%s AND password=%s", (username, password))
-        self.currentuser_username=username
-        #gmail
-        print(self.currentuser_username)
-        user=c.fetchone()
-        if user:
-            self.current_user_gmail=user[5]
+        self.user=c.fetchone()
+        print(self.user)
+        if self.user:
+            self.currentuser_username=username
+            self.currentuser_role=self.user[4]
+            self.current_user_gmail=self.user[6]
             messagebox.showinfo("Success", "Login successful")
             #check role
-            if user[6]=='admin':
+            if self.user[4]=='admin':
                 self.admin_page()
-            elif user[6]=='salesperson':
+            elif self.user[4]=='salesperson':
                 self.salesperson_page()
             else:
                 self.user_page()
